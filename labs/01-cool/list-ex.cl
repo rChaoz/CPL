@@ -10,11 +10,20 @@
 *)
 class Fibo {
     fibo_rec(n : Int) : Int {
-        0
+        if (n <= 1) then n else fibo_rec(n - 1) + fibo_rec(n - 2) fi
     };
 
     fibo_iter(n : Int) : Int {
-        0
+        if n <= 1 then n
+		else let x: Int <- 0, y: Int <- 1, tmp: Int in {
+			while not n <= 1 loop {
+				tmp <- x + y;
+				x <- y;
+				y <- tmp;
+				n <- n - 1;
+			} pool;
+			y;
+		} fi
     };
 };
     
@@ -127,9 +136,31 @@ class Cons inherits List {
 class Main inherits IO {
     main() : Object {
         let list : List <- new List.cons(1).cons(2).cons(3),
-            temp : List <- list
+            temp : List <- list,
+			num  : Int <- 2,
+			fibo : Fibo <- new Fibo
         in
             {
+				out_string("Fibonacci rec:  1");
+				while num <= 10 loop
+					{
+						out_string(", ");
+						out_int(fibo.fibo_rec(num));
+						num <- num + 1;
+					}
+				pool;
+				
+				out_string("\nFibonacci iter: 1");
+				num <- 2;
+				while num <= 10 loop
+					{
+						out_string(", ");
+						out_int(fibo.fibo_iter(num));
+						num <- num + 1;
+					}
+				pool;
+				out_string("\n");
+				
                 -- Afișare utilizând o buclă while. Mecanismul de dynamic
                 -- dispatch asigură alegerea implementării corecte a metodei
                 -- isEmpty, din clasele List, respectiv Cons.
