@@ -15,15 +15,15 @@ class Fibo {
 
     fibo_iter(n : Int) : Int {
         if n <= 1 then n
-		else let x: Int <- 0, y: Int <- 1, tmp: Int in {
-			while not n <= 1 loop {
-				tmp <- x + y;
-				x <- y;
-				y <- tmp;
-				n <- n - 1;
-			} pool;
-			y;
-		} fi
+        else let x: Int <- 0, y: Int <- 1, tmp: Int in {
+            while not n <= 1 loop {
+                tmp <- x + y
+                x <- y;
+                y <- tmp;
+                n <- n - 1;
+            } pool;
+            y;
+        } fi
     };
 };
     
@@ -137,30 +137,30 @@ class Main inherits IO {
     main() : Object {
         let list : List <- new List.cons(1).cons(2).cons(3),
             temp : List <- list,
-			num  : Int <- 2,
-			fibo : Fibo <- new Fibo
+            num  : Int <- 2,
+            fibo : Fibo <- new Fibo
         in
             {
-				out_string("Fibonacci rec:  1");
-				while num <= 10 loop
-					{
-						out_string(", ");
-						out_int(fibo.fibo_rec(num));
-						num <- num + 1;
-					}
-				pool;
-				
-				out_string("\nFibonacci iter: 1");
-				num <- 2;
-				while num <= 10 loop
-					{
-						out_string(", ");
-						out_int(fibo.fibo_iter(num));
-						num <- num + 1;
-					}
-				pool;
-				out_string("\n");
-				
+                out_string("Fibonacci rec:  1");
+                while num <= 10 loop
+                    {
+                        out_string(", ");
+                        out_int(fibo.fibo_rec(num));
+                        num <- num + 1;
+                    }
+                pool;
+                
+                out_string("\nFibonacci iter: 1");
+                num <- 2;
+                while num <= 10 loop
+                    {
+                        out_string(", ");
+                        out_int(fibo.fibo_iter(num));
+                        num <- num + 1;
+                    }
+                pool;
+                out_string("\n");
+                
                 -- Afișare utilizând o buclă while. Mecanismul de dynamic
                 -- dispatch asigură alegerea implementării corecte a metodei
                 -- isEmpty, din clasele List, respectiv Cons.
