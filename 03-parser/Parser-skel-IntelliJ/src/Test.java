@@ -72,6 +72,21 @@ public class Test {
              * la metodele exit<ETICHETA>, unde eticheta corespunde unei
              * reguli din gramatică. Trebuie să suprascrii cele 3 metode.
              */
+
+            @Override
+            public void exitVar_def(CPLangParser.Var_defContext ctx) {
+                varDefs++;
+            }
+
+            @Override
+            public void exitFormal(CPLangParser.FormalContext ctx) {
+                varDefs++;
+            }
+
+            @Override
+            public void exitFunc_def(CPLangParser.Func_defContext ctx) {
+                funcDefs++;
+            }
         };
 
         // Un walker realizează o parcurgere în adâncime a arborelui de
