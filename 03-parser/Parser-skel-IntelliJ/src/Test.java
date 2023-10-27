@@ -111,7 +111,7 @@ public class Test {
         var parser = readFromFile("input3.txt");
 
         /* TODO 3 înlocuiește expr cu regula de start */
-        var tree = parser.expr();
+        var tree = parser.prog();
 
         Scanner s = new Scanner(new File("reference3.txt"));
         ArrayList<Integer> reference = new ArrayList<Integer>();
@@ -164,6 +164,42 @@ public class Test {
             /* TODO 3 Suprascrie visit<eticheta> unde eticheta corespunde
              * operațiilor aritmetice, operațiilor parantezate, minus-unar și
              * literalilor întregi */
+
+            @Override
+            public Integer visitArithmetic_1(CPLangParser.Arithmetic_1Context ctx) {
+                var vars = ctx.expr();
+                var x = visit(vars.get(0));
+                var y = visit(vars.get(1));
+                if (ctx.MULT() != null) return x * y;
+                else return x / y;
+            }
+
+            @Override
+            public Integer visitArithmetic_2(CPLangParser.Arithmetic_2Context ctx) {
+                var vars = ctx.expr();
+                var x = visit(vars.get(0));
+                var y = visit(vars.get(1));
+                if (ctx.PLUS() != null) return x + y;
+                else return x - y;
+            }
+
+            @Override
+            public Integer visitParen_expr(CPLangParser.Paren_exprContext ctx) {
+                return visit(ctx.expr());
+            }
+
+            @Override
+            public Integer visitUnary_expr(CPLangParser.Unary_exprContext ctx) {
+                if (ctx.PLUS() != null) return visit(ctx.expr());
+                else return -visit(ctx.expr());
+            }
+
+            @Override
+            public Integer visitLiteral(CPLangParser.LiteralContext ctx) {
+                var i = ctx.INT();
+                if (i != null) return Integer.parseInt(i.getText());
+                return super.visitLiteral(ctx);
+            }
         };
 
         visitor.visit(tree);
