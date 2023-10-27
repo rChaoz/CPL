@@ -1,7 +1,8 @@
 # Laboratoare
 
 1. Exerciții în Cool
-2. Analiză lexicală
+1. Analiză lexicală
+1. Analiză sintactică 1 - Specificații sintactice
 
 Scheletele conțin porțiuni de cod adaptate din:
 
