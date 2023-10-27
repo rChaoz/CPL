@@ -1,0 +1,23 @@
+Place the checker script in a folder within the homework folder.
+The minimum python version that is required for the checker script to work is Python 3.7.
+
+This is how the folder structure should look:
+
+.
+├── checker
+│   ├── checker.py
+│   ├── README
+│   ├── refs
+│   │   ├── filterBy_1.txt
+│   │   │      ...
+│   │   └── sortBy_6.txt
+|   |── sources
+|   |   |── list.cl
+|   |   |── main.cl
+|   |   |── things.cl
+|   |   |── util.cl
+│   └── tests
+│   |   ├── filterBy_1.txt
+│   |   │     ...
+│   |   └── sortBy_6.txt
+|   ├── cool
