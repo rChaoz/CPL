@@ -2,6 +2,7 @@
   <configuration default="false" name="Run" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="Test" />
     <module name="Parser-skel" />
+    <option name="PROGRAM_PARAMETERS" value="1" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

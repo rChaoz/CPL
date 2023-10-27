@@ -49,8 +49,7 @@ FLOAT : (DIGITS ('.' DIGITS?)? | '.' DIGITS) EXPONENT?;
  * Acoladele de la final pot conține secvențe arbitrare de cod Java,
  * care vor fi executate la întâlnirea acestui token. 
  */
-STRING : '"' ('\\"' | .)*? '"'
-    { System.out.println("there are no strings in CPLang, but shhh.."); };
+STRING : '"' ('\\"' | .)*? '"' { System.out.println("there are no strings in CPLang, but shhh.."); };
 
 SEMI : ';';
 

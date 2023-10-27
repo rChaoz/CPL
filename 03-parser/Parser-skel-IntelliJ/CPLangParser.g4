@@ -14,14 +14,17 @@ options {
 prog
     :   ((definition | expr) SEMI)* EOF
     ;
-   
-/* TODO 1 Adaugă regula pentru definițiile de variabile
+
 /* Există definiții pentru variabile (opțional cu inițializare):
  * -> type name (= expr)?
  * și definiții pentru funcții:
  * -> type name (type name_formal1, type name_formal2, ..) { expr }.
  */
-definition:
+formal: TYPE ID;
+ 
+definition
+	:   TYPE ID (ASSIGN expr)?                                                  # var_def
+	|   TYPE ID LPAREN (formal (COMMA formal)*)? RPAREN LBRACE expr RBRACE      # func_def
 	;
 	
 /* Expresie.
@@ -60,12 +63,18 @@ definition:
  * cazul cond, thenBranch și elseBranch. În consecință, obiectul IfContext va
  * conține și câmpurile cond, thenBranch și elseBranch, având tipurile nodurilor
  * din arbore.
- * 
- * TODO 1: Completează gramatica pentru regulile de mai sus.
+ *
  * Nu uita si de restul literalilor.
  */
 expr
-    :	IF cond=expr THEN thenBranch=expr ELSE elseBranch=expr FI	# if
-    |	ID                                                          # id
-    |	INT                                                         # int
+    :   ID LPAREN (expr (COMMA expr)*)? RPAREN                      # call
+    |   (MINUS | PLUS) expr                                         # unary_expr
+    |   expr (MULT | DIV) expr                                      # arithmetic_1
+    |   expr (PLUS | MINUS) expr                                    # arithmetic_2
+    |   expr (EQUAL | LT | LE) expr                                 # comparison
+    |	IF cond=expr THEN thenBranch=expr ELSE elseBranch=expr FI	# if
+    |   ID ASSIGN expr                                              # var_assign
+    |	ID                                                          # var
+    |	(INT | FLOAT | STRING | BOOL)                               # literal
+    |   LPAREN expr RPAREN                                          # paren_expr
     ;
