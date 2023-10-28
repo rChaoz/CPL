@@ -4,8 +4,14 @@ class Main inherits IO {
     somestr : String;
 
     (* Entry point. *)
-    main(): Object {
-        out_string(readList().toString())
+    main(): Object {{
+        lists <- new EmptyList;
+        readNewList();
+    }};
+
+    (* Read a list and add it to the list of lists. *)
+    readNewList(): Object {
+        lists <- lists.add(readList())
     };
 
     (* Recursive function used to read a list from stdin until END. *)
@@ -35,4 +41,19 @@ class Main inherits IO {
                         esac
             ) fi
     };
+
+    (* Prints a single list, 1-based index. *)
+    printList(index: Int): Object {
+        out_string(lists.at(index - 1).toString().concat("\n"))
+    };
+
+    (* Prints all lists. Call with l=lists, index=1. *)
+    printAllLists(l: List, index: Int): Object {{
+        out_int(index);
+        out_string(": ");
+        out_string(l.head().toString());
+        out_string("\n");
+        if not l.tail().isEmpty() then printAllLists(l.tail(), index + 1)
+        else new Object fi;
+    }};
 };
