@@ -76,10 +76,12 @@ class Str inherits Stringish {
     "hello world!".split("l") = [he,,o wor,d!]
     "abc//def////xyz".split("//") = [abc,def,,xyz]
     *)
-    split(delim: String): List {
+    split(delim: String): List { (new List).from(splitBase(delim)) };
+
+    splitBase(delim: String): ListBase {
         let index: Int <- indexOf(delim, 0) in
-            if index = 0-1 then (new EmptyList).add(self)
-            else substr(index + delim.length(), length() - index - delim.length()).split(delim).add(substr(0, index)) fi
+            if index = 0-1 then (new EmptyList).cons(self)
+            else substr(index + delim.length(), length() - index - delim.length()).splitBase(delim).cons(substr(0, index)) fi
     };
 
     (* Returns the index of the first occurence of the given substring, or -1 if the substring is not found. *)

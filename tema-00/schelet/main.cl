@@ -5,13 +5,13 @@ class Main inherits IO {
 
     (* Entry point. *)
     main(): Object {{
-        lists <- new EmptyList;
+        lists <- (new List).init();
         readNewList();
         -- Console mode loop
         let go: Bool <- true in while go loop
             -- Read and parse command from stdin
             let params: List <- (new Str).from({out_string("> "); in_string();}).split(" ") in
-            let command: String <- params.head().toString() in
+            let command: String <- params.at(0).toString() in
             -- Test what command was received
             if command = "help" then {
                 out_string("Available commands:\n");
@@ -26,9 +26,9 @@ class Main inherits IO {
                 out_string("\nNote: All indices are 1-based.\n");
             } else if command = "print" then
                 -- If we have no arguments, print all lists
-                if params.length() = 1 then printAllLists(lists, 1)
+                if params.length() = 1 then printAllLists(lists.base(), 1)
                 -- Else, print the indicated list. Str.toInt() handles conversion errors.
-                else if params.length() = 2 then printList(params.at(1).str().toInt())
+                else if params.length() = 2 then printList(params.at(1).str().toInt() - 1)
                 -- Abort if we receive too many parameters
                 else { out_string("Error: too many parameters for print\n"); abort(); } fi fi
             else go <- false fi fi
@@ -36,17 +36,15 @@ class Main inherits IO {
     }};
 
     (* Read a list and add it to the list of lists. *)
-    readNewList(): Object {
-        lists <- lists.add(readList())
-    };
+    readNewList(): Object { lists.push((new List).from(readList())) };
 
     (* Recursive function used to read a list from stdin until END. *)
-    readList(): List {
+    readList(): ListBase {
         let line: String <- in_string() in
             if line = "END" then new EmptyList
-            else readList().add(
+            else readList().cons(
                 -- Process object from input line. Start by splitting line by spaces and getting item type
-                let items: List <- (new Str).from(line).split(" ") in let type: String <- items.head().toString() in
+                let items: List <- (new Str).from(line).split(" ") in let type: String <- items.at(0).toString() in
                     -- Then, create the object instance
                     let object: Stringish <-
                         if type = "Soda"          then new Soda
@@ -72,11 +70,11 @@ class Main inherits IO {
 
     (* Prints a single list, 1-based index. *)
     printList(index: Int): Object {
-        out_string(lists.at(index - 1).toString().concat("\n"))
+        out_string(lists.at(index).toString().concat("\n"))
     };
 
-    (* Prints all lists. Call with l=lists, index=1. *)
-    printAllLists(l: List, index: Int): Object {{
+    (* Prints all lists. Call with l=lists.base(), index=1. *)
+    printAllLists(l: ListBase, index: Int): Object {{
         out_int(index);
         out_string(": ");
         out_string(l.head().toString());
