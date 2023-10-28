@@ -41,7 +41,7 @@ class Str inherits Stringish {
             else if int = 7 then value <- "7"
             else if int = 8 then value <- "8"
             else if int = 9 then value <- "9"
-            else { out_string("Impossible"); abort(); ""; }
+            else { out_string("Impossible\n"); abort(); ""; }
             fi fi fi fi fi fi fi fi fi fi
         ) else
             -- Convert last (least significant) digit first
@@ -122,7 +122,7 @@ class Str inherits Stringish {
             else if value = "7" then 7
             else if value = "8" then 8
             else if value = "9" then 9
-            else { out_string("Invalid character found in Str while doing toInt(): ".concat(value)); abort(); 0; }
+            else { out_string("Invalid character found in Str while doing toInt(): '".concat(value).concat("'\n")); abort(); 0; }
             fi fi fi fi fi fi fi fi fi fi
         ) else if value.substr(0, 1) = "-" then 0 - substr(1, length() - 1).toInt()
         (* Create a new string 'rest' equal to this one minus the first character. Convert it to Int.

@@ -21,11 +21,11 @@ class List inherits Stringish {
     at(index: Int): Stringish {
         if index = 0 then head()
         else if index < 0 then {
-            out_string("Index cannot be negative for List.at()");
+            out_string("Index cannot be negative for List.at()\n");
             abort();
             self;
         } else if isEmpty() then {
-            out_string("Index out of bounds.");
+            out_string("Index out of bounds\n");
             abort();
             self;
         } else tail().at(index - 1)

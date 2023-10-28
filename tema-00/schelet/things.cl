@@ -16,7 +16,7 @@ class Product inherits Stringish {
     getprice(): Int{ price * 119 / 100 };
 
     toString(): String {
-        type_name().concat("(").concat(name).concat(",").concat(model).concat(")")
+        type_name().concat("(").concat(name).concat(";").concat(model).concat(")")
     };
 };
 
