@@ -24,19 +24,27 @@ class Main inherits IO {
                 out_string("sortBy <index> {PriceComparator,RankComparator,AlphabeticComparator} {ascendent,descendent}\n");
                 out_string("\tSorts a given list using a comparator, ascending or descending.\n");
                 out_string("\nNote: All indices are 1-based.\n");
-            } else if command = "print" then
+            } else if command = "load" then readNewList()
+            else if command = "print" then
                 -- If we have no arguments, print all lists
-                if params.length() = 1 then printAllLists(lists.base(), 1)
+                if params.length() = 1 then
+                    if not lists.isEmpty() then printAllLists(lists.base(), 1)
+                    else 0 fi
                 -- Else, print the indicated list. Str.toInt() handles conversion errors.
                 else if params.length() = 2 then printList(params.at(1).str().toInt() - 1)
                 -- Abort if we receive too many parameters
                 else { out_string("Error: too many parameters for print\n"); abort(); } fi fi
-            else go <- false fi fi
+            else if command = "merge" then
+                -- Ensure we have the right amount of parameters
+                if not params.length() = 3 then { out_string("Error: exactly 2 parameters required for merge\n"); abort(); }
+                -- Call the merge function
+                else mergeLists(params.at(1).str().toInt() - 1, params.at(2).str().toInt() - 1) fi
+            else go <- false fi fi fi fi
         pool;
     }};
 
     (* Read a list and add it to the list of lists. *)
-    readNewList(): Object { lists.push((new List).from(readList())) };
+    readNewList(): Object { lists.add((new List).from(readList())) };
 
     (* Recursive function used to read a list from stdin until END. *)
     readList(): ListBase {
@@ -82,4 +90,18 @@ class Main inherits IO {
         if not l.tail().isEmpty() then printAllLists(l.tail(), index + 1)
         else new Object fi;
     }};
+
+    (* Merge 2 lists at given indices. *)
+    mergeLists(i1: Int, i2: Int): Object {
+        -- Obtain the 2 sublists
+        case lists.at(i1) of l1: List => case lists.at(i2) of l2: List => {
+            -- Remove them from main list
+            if i1 < i2 then { lists.remove(i2); lists.remove(i1); }
+            else { lists.remove(i1); lists.remove(i2); } fi;
+            -- Concat second list to first
+            l1.concat(l2);
+            -- Add the merged list to the end of the list of lists
+            lists.add(l1);
+        }; esac; esac
+    };
 };
