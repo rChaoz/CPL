@@ -59,6 +59,15 @@ class List inherits Stringish {
         self;
     }};
 
+    (* Removes all elements from this list for which the filter predicate returns false *)
+    filterBy(f: Filter): SELF_TYPE {{
+        -- Remove elements from the head first
+        while if list.isEmpty() then false else not f.filter(list.head()) fi loop list <- list.tail() pool;
+        -- Then remove from the middle as well
+        list.filterBy(f);
+        self;
+    }};
+
     (* Converts this List to a string, elements printed head to tail, using the format "[ <value>, <value>, <value> ... ]". *)
     toString(): String { "[ ".concat(list.toString()).concat(" ]") };
 
@@ -107,12 +116,10 @@ class ListBase inherits Stringish {
     remove(index: Int): Object { abort() };
     concat(other: ListBase): Object { abort() };
 
+    filterBy(f: Filter): Object { abort() };
+
     (* Returns a new ListBase with the given head and this list as the tail. *)
     cons(elem: Stringish): ListBase { (new Cons).init(owner, self, elem) };
-
-    filterBy(): SELF_TYPE {
-        self (* TODO *)
-    };
 
     sortBy(): SELF_TYPE {
         self (* TODO *)
@@ -161,6 +168,11 @@ class Cons inherits ListBase {
         else tail().concat(other) fi
     };
 
+    filterBy(f: Filter): Object {{
+        while if tail.isEmpty() then false else not f.filter(tail.head()) fi loop tail <- tail.tail() pool;
+        tail.filterBy(f);
+    }};
+
     toString(): String {
         if tail.isEmpty() then head.toString()
         else head.toString().concat(", ").concat(tail.toString()) fi
@@ -176,6 +188,8 @@ class EmptyList inherits ListBase {
     
     at(index: Int): Stringish { owner.indexOutOfBounds() };
     remove(index: Int): Object { owner.indexOutOfBounds() };
+
+    filterBy(f: Filter): Object { 0 };
 
     toString(): String { "" };
 };

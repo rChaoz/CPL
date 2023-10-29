@@ -27,17 +27,17 @@ class Edible inherits Product {
 
 class Soda inherits Edible {
     -- sugar tax is 20 bani
-    getprice(): Int {price * 109 / 100 + 20};
+    getprice(): Int { price * 109 / 100 + 20 };
 };
 
 class Coffee inherits Edible {
     -- this is technically poison for ants
-    getprice(): Int {price * 119 / 100};
+    getprice(): Int { price * 119 / 100 };
 };
 
 class Laptop inherits Product {
     -- operating system cost included
-    getprice(): Int {price * 119 / 100 + 499};
+    getprice(): Int { price * 119 / 100 + 499 };
 };
 
 class Router inherits Product {};

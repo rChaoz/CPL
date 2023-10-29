@@ -39,7 +39,13 @@ class Main inherits IO {
                 if not params.length() = 3 then { out_string("Error: exactly 2 parameters required for merge\n"); abort(); }
                 -- Call the merge function
                 else mergeLists(params.at(1).str().toInt() - 1, params.at(2).str().toInt() - 1) fi
-            else go <- false fi fi fi fi
+            else if command = "filterBy" then
+                if not params.length() = 3 then { out_string("Error: exactly 2 parameters required for filter\n"); abort(); }
+                else filterList(params.at(1).str().toInt() - 1, (new Filter).from(params.at(2).toString())) fi
+            else {
+                out_string("unknown command\n");
+                go <- false;
+            } fi fi fi fi fi
         pool;
     }};
 
@@ -103,5 +109,10 @@ class Main inherits IO {
             -- Add the merged list to the end of the list of lists
             lists.add(l1);
         }; esac; esac
+    };
+
+    (* Remove all elements that do not match a filter from a list. *)
+    filterList(index: Int, filter: Filter): Object {
+        case lists.at(index) of l: List => l.filterBy(filter); esac
     };
 };
