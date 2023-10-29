@@ -108,6 +108,13 @@ tests = [
 
 if __name__ == "__main__":
     total = 0
+    # Copy source files
+    subprocess.run("""
+    set -e
+    rm -rf ./sources/
+    mkdir sources
+    cp ../schelet/*.cl sources/
+    """, shell=True, check=True)
 
     for (tname, points, func) in tests:
         if func is not None:

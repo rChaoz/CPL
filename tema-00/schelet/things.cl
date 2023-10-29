@@ -67,3 +67,24 @@ class Corporal inherits Private { rankValue(): Int { 2 }; };
 class Sergent inherits Corporal { rankValue(): Int { 3 }; };
 
 class Officer inherits Sergent { rankValue(): Int { 4 }; };
+
+class Primitive inherits Stringish {
+    type: String;
+    value: String;
+
+    from(t: String): SELF_TYPE {{
+        type <- t;
+        self;
+    }};
+
+    type(): String { type };
+
+    init(v: String): SELF_TYPE {{
+        value <- v;
+        self;
+    }};
+
+    v(): String { value };
+
+    toString(): String { type.concat("(").concat(value).concat(")") };
+};

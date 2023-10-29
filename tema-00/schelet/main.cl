@@ -3,6 +3,8 @@ class Main inherits IO {
     looping : Bool <- true;
     somestr : String;
 
+    release(): Bool { true };
+
     (* Entry point. *)
     main(): Object {{
         lists <- (new List).init();
@@ -10,7 +12,10 @@ class Main inherits IO {
         -- Console mode loop
         let go: Bool <- true in while go loop
             -- Read and parse command from stdin
-            let params: List <- (new Str).from({out_string("> "); in_string();}).split(" ") in
+            let params: List <- (new Str).from({
+                if not release() then out_string("> ") else 0 fi;
+                in_string();
+            }).split(" ") in
             let command: String <- params.at(0).toString() in
             -- Test what command was received
             if command = "help" then {
@@ -23,7 +28,7 @@ class Main inherits IO {
                 out_string("\tApply a filter to a given list, eliminating elements from the list.\n");
                 out_string("sortBy <index> {PriceComparator,RankComparator,AlphabeticComparator} {ascendent,descendent}\n");
                 out_string("\tSorts a given list using a comparator, ascending or descending.\n");
-                out_string("\nNote: Use 0-based indices for <index> in commands.\n");
+                out_string("\nNote: Use 1-based indices for <index> in commands.\n");
             } else if command = "load" then readNewList()
             else if command = "print" then
                 -- If we have no arguments, print all lists
@@ -31,22 +36,22 @@ class Main inherits IO {
                     if not lists.isEmpty() then printAllLists(lists.base(), 1)
                     else 0 fi
                 -- Else, print the indicated list. Str.toInt() handles conversion errors.
-                else if params.length() = 2 then printList(params.at(1).str().toInt())
+                else if params.length() = 2 then printList(params.at(1).str().toInt() - 1)
                 -- Abort if we receive too many parameters
                 else { out_string("Error: too many parameters for print\n"); abort(); } fi fi
             else if command = "merge" then
                 -- Ensure we have the right amount of parameters
                 if not params.length() = 3 then { out_string("Error: exactly 2 parameters required for merge\n"); abort(); }
                 -- Call the merge function
-                else mergeLists(params.at(1).str().toInt(), params.at(2).str().toInt()) fi
+                else mergeLists(params.at(1).str().toInt() - 1, params.at(2).str().toInt() - 1) fi
             else if command = "filterBy" then
                 if not params.length() = 3 then { out_string("Error: exactly 2 parameters required for filterBy\n"); abort(); }
-                else filterList(params.at(1).str().toInt(), (new Filter).from(params.at(2).toString())) fi
+                else filterList(params.at(1).str().toInt() - 1, (new Filter).from(params.at(2).toString())) fi
             else if command = "sortBy" then
                 if not params.length() = 4 then { out_string("Error: exactly 3 parameters required for sortBy\n"); abort(); }
-                else sortList(params.at(1).str().toInt(), (new Comparator).from(params.at(2).toString()), params.at(3).toString() = "descendent") fi
+                else sortList(params.at(1).str().toInt() - 1, (new Comparator).from(params.at(2).toString()), params.at(3).toString() = "descendent") fi
             else {
-                out_string("unknown command\n");
+                out_string("unknown command: '".concat(command).concat("'\n"));
                 go <- false;
             } fi fi fi fi fi fi
         pool;
@@ -72,15 +77,15 @@ class Main inherits IO {
                         else if type = "Corporal" then new Corporal
                         else if type = "Sergent"  then new Sergent
                         else if type = "Officer"  then new Officer
-                        else if type = "String"   then (new Str).from(line).substr(7, line.length() - 7)
-                        else { out_string("Invalid object type: ".concat(type).concat("\n")); abort(); new Stringish; }
-                        fi fi fi fi fi fi fi fi fi -- fi fi fi fi fi fi fi fi fi fi fi fi fi fi fi fi fi fi fi fi fi ...
+                        else (new Primitive).from(type)
+                        fi fi fi fi fi fi fi fi  -- fi fi fi fi fi fi fi fi fi fi fi fi fi fi fi fi fi fi fi fi fi ...
                     in
                         -- Finally, initialize the object (if needed) and return it
                         case object of
-                            p : Product => p.init(items.at(1).toString(), items.at(2).toString(), items.at(3).str().toInt());
-                            r : Rank    => r.init(items.at(1).toString());
-                            s : Str     => s;
+                            p : Product     => p.init(items.at(1).toString(), items.at(2).toString(), items.at(3).str().toInt());
+                            r : Rank        => r.init(items.at(1).toString());
+                            s : Primitive   => if (s.type() = "IO") then s.init("")
+                                               else s.init(line.substr(s.type().length() + 1, line.length() - s.type().length() - 1)) fi;
                         esac
             ) fi
     };
