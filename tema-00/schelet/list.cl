@@ -68,6 +68,28 @@ class List inherits Stringish {
         self;
     }};
 
+    (* Bubble sorts this list using the given comparator, optionally reversed. *)
+    sortBy(c: Comparator, reverse: Bool): SELF_TYPE {{
+        let n: Int <- length(), mul: Int <- if reverse then 0-1 else 1 fi in
+        while 0 < n loop {
+            let item: ListBase <- list, temp: Stringish in
+            -- while item and item.tail values exist
+            while if item.isEmpty() then false else not item.tail().isEmpty() fi loop {
+                if 0 < c.compare(item.head(), item.tail().head()) * mul then
+                    -- swap the 2 items
+                    case item of cons1: Cons => case item.tail() of cons2: Cons => {
+                        temp <- cons1.head();
+                        cons1.init(self, cons1.tail(), cons2.head());
+                        cons2.init(self, cons2.tail(), temp);
+                    } ; esac; esac
+                else 0 fi;
+                item <- item.tail();
+            } pool;
+            n <- n - 1;
+        } pool;
+        self;
+    }};
+
     (* Converts this List to a string, elements printed head to tail, using the format "[ <value>, <value>, <value> ... ]". *)
     toString(): String { "[ ".concat(list.toString()).concat(" ]") };
 

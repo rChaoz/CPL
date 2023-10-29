@@ -16,14 +16,14 @@ class Main inherits IO {
             if command = "help" then {
                 out_string("Available commands:\n");
                 out_string("help\n\tShows this help info.\n");
-                out_string("print [index]\n\tPrints a list.\n\tIf index is not provided, prints all lists.\n");
+                out_string("print [index]\n\tPrints a list.\n\tIf index is not provided, prints all lists using 1-based indices.\n");
                 out_string("merge <index-1> <index-2>\n\tMerges 2 lists together, by concatenating the second over the first.\n");
                 out_string("\tThe new list will be placed at the end. The old lists will be deleted.\n");
                 out_string("filterBy <index> {ProductFilter,RankFilter,SamePriceFilter}\n");
                 out_string("\tApply a filter to a given list, eliminating elements from the list.\n");
                 out_string("sortBy <index> {PriceComparator,RankComparator,AlphabeticComparator} {ascendent,descendent}\n");
                 out_string("\tSorts a given list using a comparator, ascending or descending.\n");
-                out_string("\nNote: All indices are 1-based.\n");
+                out_string("\nNote: Use 0-based indices for <index> in commands.\n");
             } else if command = "load" then readNewList()
             else if command = "print" then
                 -- If we have no arguments, print all lists
@@ -31,21 +31,24 @@ class Main inherits IO {
                     if not lists.isEmpty() then printAllLists(lists.base(), 1)
                     else 0 fi
                 -- Else, print the indicated list. Str.toInt() handles conversion errors.
-                else if params.length() = 2 then printList(params.at(1).str().toInt() - 1)
+                else if params.length() = 2 then printList(params.at(1).str().toInt())
                 -- Abort if we receive too many parameters
                 else { out_string("Error: too many parameters for print\n"); abort(); } fi fi
             else if command = "merge" then
                 -- Ensure we have the right amount of parameters
                 if not params.length() = 3 then { out_string("Error: exactly 2 parameters required for merge\n"); abort(); }
                 -- Call the merge function
-                else mergeLists(params.at(1).str().toInt() - 1, params.at(2).str().toInt() - 1) fi
+                else mergeLists(params.at(1).str().toInt(), params.at(2).str().toInt()) fi
             else if command = "filterBy" then
-                if not params.length() = 3 then { out_string("Error: exactly 2 parameters required for filter\n"); abort(); }
-                else filterList(params.at(1).str().toInt() - 1, (new Filter).from(params.at(2).toString())) fi
+                if not params.length() = 3 then { out_string("Error: exactly 2 parameters required for filterBy\n"); abort(); }
+                else filterList(params.at(1).str().toInt(), (new Filter).from(params.at(2).toString())) fi
+            else if command = "sortBy" then
+                if not params.length() = 4 then { out_string("Error: exactly 3 parameters required for sortBy\n"); abort(); }
+                else sortList(params.at(1).str().toInt(), (new Comparator).from(params.at(2).toString()), params.at(3).toString() = "descendent") fi
             else {
                 out_string("unknown command\n");
                 go <- false;
-            } fi fi fi fi fi
+            } fi fi fi fi fi fi
         pool;
     }};
 
@@ -114,5 +117,10 @@ class Main inherits IO {
     (* Remove all elements that do not match a filter from a list. *)
     filterList(index: Int, filter: Filter): Object {
         case lists.at(index) of l: List => l.filterBy(filter); esac
+    };
+
+    (* Sort a list using a given comparator. *)
+    sortList(index: Int, comparator: Comparator, reverse: Bool): Object {
+        case lists.at(index) of l: List => l.sortBy(comparator, reverse); esac
     };
 };

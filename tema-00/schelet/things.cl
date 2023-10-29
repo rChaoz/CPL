@@ -53,15 +53,17 @@ class Rank inherits Stringish {
         self;
     }};
 
+    rankValue(): Int {{ abort(); 0; }};
+
     toString(): String {
         type_name().concat("(").concat(name).concat(")")
     };
 };
 
-class Private inherits Rank {};
+class Private inherits Rank { rankValue(): Int { 1 }; };
 
-class Corporal inherits Private {};
+class Corporal inherits Private { rankValue(): Int { 2 }; };
 
-class Sergent inherits Corporal {};
+class Sergent inherits Corporal { rankValue(): Int { 3 }; };
 
-class Officer inherits Sergent {};
+class Officer inherits Sergent { rankValue(): Int { 4 }; };
