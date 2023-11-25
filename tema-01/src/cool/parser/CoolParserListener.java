@@ -30,18 +30,6 @@ public interface CoolParserListener extends ParseTreeListener {
 	 */
 	void exitClass(CoolParser.ClassContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code field}
-	 * labeled alternative in {@link CoolParser#feature}.
-	 * @param ctx the parse tree
-	 */
-	void enterField(CoolParser.FieldContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code field}
-	 * labeled alternative in {@link CoolParser#feature}.
-	 * @param ctx the parse tree
-	 */
-	void exitField(CoolParser.FieldContext ctx);
-	/**
 	 * Enter a parse tree produced by the {@code method}
 	 * labeled alternative in {@link CoolParser#feature}.
 	 * @param ctx the parse tree
@@ -54,6 +42,18 @@ public interface CoolParserListener extends ParseTreeListener {
 	 */
 	void exitMethod(CoolParser.MethodContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code field}
+	 * labeled alternative in {@link CoolParser#feature}.
+	 * @param ctx the parse tree
+	 */
+	void enterField(CoolParser.FieldContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code field}
+	 * labeled alternative in {@link CoolParser#feature}.
+	 * @param ctx the parse tree
+	 */
+	void exitField(CoolParser.FieldContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link CoolParser#formal}.
 	 * @param ctx the parse tree
 	 */
@@ -63,16 +63,6 @@ public interface CoolParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitFormal(CoolParser.FormalContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CoolParser#none}.
-	 * @param ctx the parse tree
-	 */
-	void enterNone(CoolParser.NoneContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CoolParser#none}.
-	 * @param ctx the parse tree
-	 */
-	void exitNone(CoolParser.NoneContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code expression}
 	 * labeled alternative in {@link CoolParser#expr}.
@@ -290,18 +280,6 @@ public interface CoolParserListener extends ParseTreeListener {
 	 */
 	void exitCase(CoolParser.CaseContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code methodCall}
-	 * labeled alternative in {@link CoolParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterMethodCall(CoolParser.MethodCallContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code methodCall}
-	 * labeled alternative in {@link CoolParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitMethodCall(CoolParser.MethodCallContext ctx);
-	/**
 	 * Enter a parse tree produced by the {@code instantiation}
 	 * labeled alternative in {@link CoolParser#expr}.
 	 * @param ctx the parse tree
@@ -313,4 +291,16 @@ public interface CoolParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitInstantiation(CoolParser.InstantiationContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code methodCall}
+	 * labeled alternative in {@link CoolParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterMethodCall(CoolParser.MethodCallContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code methodCall}
+	 * labeled alternative in {@link CoolParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitMethodCall(CoolParser.MethodCallContext ctx);
 }

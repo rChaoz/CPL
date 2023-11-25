@@ -25,13 +25,6 @@ public interface CoolParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitClass(CoolParser.ClassContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code field}
-	 * labeled alternative in {@link CoolParser#feature}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitField(CoolParser.FieldContext ctx);
-	/**
 	 * Visit a parse tree produced by the {@code method}
 	 * labeled alternative in {@link CoolParser#feature}.
 	 * @param ctx the parse tree
@@ -39,17 +32,18 @@ public interface CoolParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitMethod(CoolParser.MethodContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code field}
+	 * labeled alternative in {@link CoolParser#feature}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitField(CoolParser.FieldContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link CoolParser#formal}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitFormal(CoolParser.FormalContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link CoolParser#none}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitNone(CoolParser.NoneContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code expression}
 	 * labeled alternative in {@link CoolParser#expr}.
@@ -177,17 +171,17 @@ public interface CoolParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitCase(CoolParser.CaseContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code methodCall}
-	 * labeled alternative in {@link CoolParser#expr}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitMethodCall(CoolParser.MethodCallContext ctx);
-	/**
 	 * Visit a parse tree produced by the {@code instantiation}
 	 * labeled alternative in {@link CoolParser#expr}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitInstantiation(CoolParser.InstantiationContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code methodCall}
+	 * labeled alternative in {@link CoolParser#expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitMethodCall(CoolParser.MethodCallContext ctx);
 }

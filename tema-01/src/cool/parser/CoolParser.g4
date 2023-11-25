@@ -10,30 +10,29 @@ tokens { NONE }
     package cool.parser;
 }
 
-program : class+ ;
+program : class+ EOF ;
 
-class : CLASS TYPE (INHERITS TYPE)? LCURLY feature* RCURLY ;
+class : CLASS TYPE (INHERITS TYPE)? LCURLY feature* RCURLY SEMICOLON;
 
 feature
-    : ID LPAREN (formal (COMMA formal)*)? RPAREN    # field
-    | ID OF_TYPE TYPE (ASSIGN expr)                 # method ;
+    : ID LPAREN (formal (COMMA formal)*)? RPAREN OF_TYPE TYPE
+            LCURLY expr RCURLY SEMICOLON                        # method
+    | ID OF_TYPE TYPE (ASSIGN expr)? SEMICOLON                  # field ;
 
 formal : ID OF_TYPE TYPE ;
 
-none: ;
-
 expr
-    : ID ASSIGN                                                                     # varAssign
-    | obj=ID (AT type=TYPE) DOT method=ID LPAREN
+    : ID ASSIGN expr                                                                # varAssign
+    | obj=expr (AT type=TYPE)? DOT method=ID LPAREN
             (args+=expr (COMMA args+=expr)*)? RPAREN                                # methodCall
     | method=ID LPAREN (args+=expr (COMMA args+=expr)*)? RPAREN                     # selfMethodCall
     | IF cond=expr THEN thenBranch=expr ELSE elseBranch=expr FI                     # if
     | WHILE cond=expr LOOP body=expr POOL                                           # while
-    | LCURLY (body+=expr)+ RCURLY                                                   # block
+    | LCURLY (body+=expr SEMICOLON)+ RCURLY                                         # block
     | LET vars+=ID OF_TYPE types+=TYPE (ASSIGN values+=expr)
             (COMMA ID OF_TYPE TYPE (ASSIGN values+=expr)?)* IN expr                 # let
-    | CASE obj=expr OF
-            (caseIds+=ID OF_TYPE caseTypes+=TYPE CASE_ARROW caseBodies+=expr)+ ESAC # case
+    | CASE obj=expr OF (caseIds+=ID OF_TYPE caseTypes+=TYPE
+            CASE_ARROW caseBodies+=expr SEMICOLON)+ ESAC                            # case
     | NEW TYPE                                                                      # instantiation
     | ISVOID expr                                                                   # isvoid
     | left=expr op=PLUS right=expr                                                  # arithmetic
