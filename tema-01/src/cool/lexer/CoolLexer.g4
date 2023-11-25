@@ -41,8 +41,6 @@ fragment X:[xX];
 fragment Y:[yY];
 fragment Z:[zZ];
 
-fragment ENDL : '\r'? '\n' ;
-
 // Keywords
 CLASS : C L A S S ;
 INHERITS : I N H E R I T S ;
@@ -89,6 +87,7 @@ DOT : '.' ;
 COMMA : ',' ;
 CASE_ARROW : '=>' ;
 ASSIGN : '<-' ;
+SEMICOLON : ';' ;
 
 // Types and IDs
 TYPE : [A-Z][a-zA-Z0-9_]* ; // this includes 'SELF_TYPE'
@@ -103,13 +102,14 @@ TRUE : 't' R U E ;
 FALSE : 'f' A L S E ;
 
 // Comments
-LINE_COMMENT : '--' [^\r\n]* -> skip;
+LINE_COMMENT : '--' ~[\r\n]* -> skip;
 BLOCK_COMMENT : '(*' -> skip, pushMode(BLOCK_COMMENT_MODE);
 UNMATCHED_BLOCK_COMMENT : '*)' { raiseError("Unmatched *)"); } ;
 
 // Strings
-START_STRING
-    :   '"' -> skip, pushMode(STRING_MODE);
+EMPTY_STRING : '""' { setText(""); setType(STRING); } ;
+
+START_STRING : '"' -> skip, pushMode(STRING_MODE);
 
 // Unknown character
 
@@ -119,30 +119,59 @@ UNKNOWN_CHARACTER : . { raiseError("Invalid character: " + getText()); };
 // For block comments
 mode BLOCK_COMMENT_MODE;
 
-BLOCK_COMMENT_CHAR : . -> skip;
-
 END_BLOCK_COMMENT : '*)' -> skip, popMode;
 
-EOF_IN_BLOCK_COMMENT : EOF { raiseError("EOF in comment"); };
+EOF_IN_BLOCK_COMMENT : EOF { raiseError("EOF in comment"); } -> popMode;
 
+BLOCK_COMMENT_CHAR : . -> skip;
 
 // For strings
 mode STRING_MODE;
 
-ESC
-    : '\\n' { setText("\n"); }
-    | '\\t' { setText("\t"); }
-    | '\\b' { setText("\b"); }
-    | '\\f' { setText("\f"); }
-    | '\\' . { setText(getText().substring(1)); };
-
-STRING: (ESC | [^\r\n"])+ {
-if (getText().indexOf('\0') != -1) raiseError("String contains null character");
-else if (getText().length() > 1024) raiseError("String constant too long");
+STRING: ('\\' . | ~[\r\n"])+ {
+var content = getText();
+var builder = new StringBuilder(content.length());
+boolean escaping = false;
+for (int i = 0; i < content.length(); ++i) {
+    char c = content.charAt(i);
+    if (escaping) {
+        switch (c) {
+            case 'n':
+                builder.append('\n');
+                break;
+            case 't':
+                builder.append('\t');
+                break;
+            case 'b':
+                builder.append('\b');
+                break;
+            case 'f':
+                builder.append('\f');
+                break;
+            default:
+                builder.append(c);
+                break;
+        }
+        escaping = false;
+    } else if (c == '\\') escaping = true;
+    else builder.append(c);
+}
+content = builder.toString();
+if (content.indexOf('\0') != -1) raiseError("String contains null character");
+else if (content.length() > 1024) raiseError("String constant too long");
+else setText(content);
 };
+
+CHAR
+    : '\\n'  { setText("\n"); }
+    | '\\t'  { setText("\t"); }
+    | '\\b'  { setText("\b"); }
+    | '\\f'  { setText("\f"); }
+    | '\\' . { setText(getText().substring(1)); }
+    | ~[\r\n"] { setText(getText()); } ;
 
 END_STRING : '"' -> skip, popMode;
 
-UNTERMINATED_STRING : ENDL { raiseError("Unterminated string constant"); } ;
+UNTERMINATED_STRING : [\r\n] { raiseError("Unterminated string constant"); } -> popMode ;
 
-EOF_STRING : EOF { raiseError("EOF in string constant"); } ;
+EOF_STRING : EOF { raiseError("EOF in string constant"); } -> popMode ;
