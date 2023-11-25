@@ -103,33 +103,20 @@ FALSE : 'f' A L S E ;
 
 // Comments
 LINE_COMMENT : '--' ~[\r\n]* -> skip;
-BLOCK_COMMENT : '(*' -> skip, pushMode(BLOCK_COMMENT_MODE);
+EOF_BLOCK_COMMENT : '(*' (EOF_BLOCK_COMMENT | BLOCK_COMMENT | '*' ~')' | ~'*')* EOF { raiseError("EOF in comment"); } ;
+BLOCK_COMMENT : '(*' (EOF_BLOCK_COMMENT | BLOCK_COMMENT | '*' ~')' | ~'*')* '*)' -> skip;
 UNMATCHED_BLOCK_COMMENT : '*)' { raiseError("Unmatched *)"); } ;
 
 // Strings
-EMPTY_STRING : '""' { setText(""); setType(STRING); } ;
+UNTERMINATED_STRING : '"' ('\\' . | ~[\r\n"])* [\r\n] { raiseError("Unterminated string constant"); } ;
 
-START_STRING : '"' -> skip, pushMode(STRING_MODE);
+EOF_STRING : '"' ('\\' . | ~[\r\n"])* EOF { raiseError("EOF in string constant"); } ;
 
-// Unknown character
-
-UNKNOWN_CHARACTER : . { raiseError("Invalid character: " + getText()); };
-
-
-// For block comments
-mode BLOCK_COMMENT_MODE;
-
-END_BLOCK_COMMENT : '*)' -> skip, popMode;
-
-EOF_IN_BLOCK_COMMENT : EOF { raiseError("EOF in comment"); } -> popMode;
-
-BLOCK_COMMENT_CHAR : . -> skip;
-
-// For strings
-mode STRING_MODE;
-
-STRING: ('\\' . | ~[\r\n"])+ {
+STRING : '"' ('\\' . | ~[\r\n"])* '"' {
 var content = getText();
+// Remove leading & trailing quote character
+content = content.substring(1, content.length() - 1);
+// Parse escaped
 var builder = new StringBuilder(content.length());
 boolean escaping = false;
 for (int i = 0; i < content.length(); ++i) {
@@ -157,21 +144,12 @@ for (int i = 0; i < content.length(); ++i) {
     else builder.append(c);
 }
 content = builder.toString();
+// Verify string literal constraints
 if (content.indexOf('\0') != -1) raiseError("String contains null character");
 else if (content.length() > 1024) raiseError("String constant too long");
 else setText(content);
 };
 
-CHAR
-    : '\\n'  { setText("\n"); }
-    | '\\t'  { setText("\t"); }
-    | '\\b'  { setText("\b"); }
-    | '\\f'  { setText("\f"); }
-    | '\\' . { setText(getText().substring(1)); }
-    | ~[\r\n"] { setText(getText()); } ;
+// Unknown character
 
-END_STRING : '"' -> skip, popMode;
-
-UNTERMINATED_STRING : [\r\n] { raiseError("Unterminated string constant"); } -> popMode ;
-
-EOF_STRING : EOF { raiseError("EOF in string constant"); } -> popMode ;
+UNKNOWN_CHARACTER : . { raiseError("Invalid character: " + getText()); };

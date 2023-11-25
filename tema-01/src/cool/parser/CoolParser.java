@@ -24,11 +24,9 @@ public class CoolParser extends Parser {
 		NOT=18, COMPLEMENT=19, PLUS=20, MINUS=21, MULTIPLY=22, DIVIDE=23, EQ=24, 
 		LESS=25, LESS_EQ=26, LPAREN=27, RPAREN=28, LCURLY=29, RCURLY=30, OF_TYPE=31, 
 		AT=32, DOT=33, COMMA=34, CASE_ARROW=35, ASSIGN=36, SEMICOLON=37, TYPE=38, 
-		ID=39, WS=40, INTEGER=41, TRUE=42, FALSE=43, LINE_COMMENT=44, BLOCK_COMMENT=45, 
-		UNMATCHED_BLOCK_COMMENT=46, EMPTY_STRING=47, START_STRING=48, UNKNOWN_CHARACTER=49, 
-		END_BLOCK_COMMENT=50, EOF_IN_BLOCK_COMMENT=51, BLOCK_COMMENT_CHAR=52, 
-		STRING=53, CHAR=54, END_STRING=55, UNTERMINATED_STRING=56, EOF_STRING=57, 
-		NONE=58;
+		ID=39, WS=40, INTEGER=41, TRUE=42, FALSE=43, LINE_COMMENT=44, EOF_BLOCK_COMMENT=45, 
+		BLOCK_COMMENT=46, UNMATCHED_BLOCK_COMMENT=47, UNTERMINATED_STRING=48, 
+		EOF_STRING=49, STRING=50, UNKNOWN_CHARACTER=51, NONE=52;
 	public static final int
 		RULE_program = 0, RULE_class = 1, RULE_feature = 2, RULE_formal = 3, RULE_expr = 4;
 	private static String[] makeRuleNames() {
@@ -44,7 +42,7 @@ public class CoolParser extends Parser {
 			null, null, null, null, null, null, null, "'~'", "'+'", "'-'", "'*'", 
 			"'/'", "'='", "'<'", "'<='", "'('", "')'", "'{'", "'}'", "':'", "'@'", 
 			"'.'", "','", "'=>'", "'<-'", "';'", null, null, null, null, null, null, 
-			null, "'(*'", null, "'\"\"'"
+			null, null, null, "'*)'"
 		};
 	}
 	private static final String[] _LITERAL_NAMES = makeLiteralNames();
@@ -55,10 +53,9 @@ public class CoolParser extends Parser {
 			"NOT", "COMPLEMENT", "PLUS", "MINUS", "MULTIPLY", "DIVIDE", "EQ", "LESS", 
 			"LESS_EQ", "LPAREN", "RPAREN", "LCURLY", "RCURLY", "OF_TYPE", "AT", "DOT", 
 			"COMMA", "CASE_ARROW", "ASSIGN", "SEMICOLON", "TYPE", "ID", "WS", "INTEGER", 
-			"TRUE", "FALSE", "LINE_COMMENT", "BLOCK_COMMENT", "UNMATCHED_BLOCK_COMMENT", 
-			"EMPTY_STRING", "START_STRING", "UNKNOWN_CHARACTER", "END_BLOCK_COMMENT", 
-			"EOF_IN_BLOCK_COMMENT", "BLOCK_COMMENT_CHAR", "STRING", "CHAR", "END_STRING", 
-			"UNTERMINATED_STRING", "EOF_STRING", "NONE"
+			"TRUE", "FALSE", "LINE_COMMENT", "EOF_BLOCK_COMMENT", "BLOCK_COMMENT", 
+			"UNMATCHED_BLOCK_COMMENT", "UNTERMINATED_STRING", "EOF_STRING", "STRING", 
+			"UNKNOWN_CHARACTER", "NONE"
 		};
 	}
 	private static final String[] _SYMBOLIC_NAMES = makeSymbolicNames();
@@ -1086,7 +1083,7 @@ public class CoolParser extends Parser {
 				setState(81);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 9023142845418032L) != 0)) {
+				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 1141843497519664L) != 0)) {
 					{
 					setState(73);
 					((SelfMethodCallContext)_localctx).expr = expr(0);
@@ -1176,7 +1173,7 @@ public class CoolParser extends Parser {
 					setState(104); 
 					_errHandler.sync(this);
 					_la = _input.LA(1);
-				} while ( (((_la) & ~0x3f) == 0 && ((1L << _la) & 9023142845418032L) != 0) );
+				} while ( (((_la) & ~0x3f) == 0 && ((1L << _la) & 1141843497519664L) != 0) );
 				setState(106);
 				match(RCURLY);
 				}
@@ -1518,7 +1515,7 @@ public class CoolParser extends Parser {
 						setState(203);
 						_errHandler.sync(this);
 						_la = _input.LA(1);
-						if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 9023142845418032L) != 0)) {
+						if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 1141843497519664L) != 0)) {
 							{
 							setState(195);
 							((MethodCallContext)_localctx).expr = expr(0);
@@ -1597,7 +1594,7 @@ public class CoolParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\u0004\u0001:\u00d4\u0002\u0000\u0007\u0000\u0002\u0001\u0007\u0001\u0002"+
+		"\u0004\u00014\u00d4\u0002\u0000\u0007\u0000\u0002\u0001\u0007\u0001\u0002"+
 		"\u0002\u0007\u0002\u0002\u0003\u0007\u0003\u0002\u0004\u0007\u0004\u0001"+
 		"\u0000\u0004\u0000\f\b\u0000\u000b\u0000\f\u0000\r\u0001\u0000\u0001\u0000"+
 		"\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0003\u0001\u0016\b\u0001"+
@@ -1700,7 +1697,7 @@ public class CoolParser extends Parser {
 		"\b\u0004\u0007\u009b\u009c\u0005\u001b\u0000\u0000\u009c\u009d\u0003\b"+
 		"\u0004\u0000\u009d\u009e\u0005\u001c\u0000\u0000\u009e\u00a5\u0001\u0000"+
 		"\u0000\u0000\u009f\u00a5\u0005\'\u0000\u0000\u00a0\u00a5\u0005)\u0000"+
-		"\u0000\u00a1\u00a5\u00055\u0000\u0000\u00a2\u00a5\u0005*\u0000\u0000\u00a3"+
+		"\u0000\u00a1\u00a5\u00052\u0000\u0000\u00a2\u00a5\u0005*\u0000\u0000\u00a3"+
 		"\u00a5\u0005+\u0000\u0000\u00a4C\u0001\u0000\u0000\u0000\u00a4G\u0001"+
 		"\u0000\u0000\u0000\u00a4T\u0001\u0000\u0000\u0000\u00a4\\\u0001\u0000"+
 		"\u0000\u0000\u00a4b\u0001\u0000\u0000\u0000\u00a4l\u0001\u0000\u0000\u0000"+

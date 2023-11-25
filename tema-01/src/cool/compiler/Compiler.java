@@ -7,6 +7,7 @@ import cool.lexer.*;
 import cool.parser.*;
 
 import java.io.*;
+import java.util.List;
 
 
 public class Compiler {
@@ -44,7 +45,7 @@ public class Compiler {
             else
                 tokenStream.setTokenSource(lexer);
                 
-            /*
+            //*
             // Test lexer only.
             tokenStream.fill();
             List<Token> tokens = tokenStream.getTokens();
@@ -55,7 +56,7 @@ public class Compiler {
                 System.out.println(text + " : " + name);
                 //System.out.println(token);
             });
-            */
+            //*/
             
             // Parser
             if (parser == null)
