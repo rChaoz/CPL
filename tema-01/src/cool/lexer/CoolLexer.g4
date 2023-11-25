@@ -68,7 +68,7 @@ ISVOID : I S V O I D ;
 NOT : N O T ;
 
 // Other special characters
-NEGATIVE : '~' ;
+COMPLEMENT : '~' ;
 PLUS : '+' ;
 MINUS : '-' ;
 MULTIPLY : '*' ;
@@ -83,6 +83,10 @@ RPAREN : ')' ;
 LCURLY : '{' ;
 RCURLY : '}' ;
 
+OF_TYPE : ':' ;
+AT : '@' ;
+DOT : '.' ;
+COMMA : ',' ;
 CASE_ARROW : '=>' ;
 ASSIGN : '<-' ;
 
