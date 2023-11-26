@@ -39,7 +39,9 @@ public class CoolVisitor extends CoolParserBaseVisitor<Void> {
         print("method");
         ++indent;
         print(ctx.ID().getText());
-        visitChildren(ctx);
+        ctx.args.forEach(this::visit);
+        print(ctx.TYPE().getText());
+        visit(ctx.expr());
         --indent;
         return null;
     }
@@ -95,9 +97,32 @@ public class CoolVisitor extends CoolParserBaseVisitor<Void> {
     }
 
     @Override
+    public Void visitLocal(CoolParser.LocalContext ctx) {
+        print("local");
+        ++indent;
+        print(ctx.ID().getText());
+        print(ctx.TYPE().getText());
+        visitChildren(ctx);
+        --indent;
+        return null;
+    }
+
+    @Override
     public Void visitCase(CoolParser.CaseContext ctx) {
         print("case");
         ++indent;
+        print(ctx.ID().getText());
+        visitChildren(ctx);
+        --indent;
+        return null;
+    }
+
+    @Override
+    public Void visitCase_branch(CoolParser.Case_branchContext ctx) {
+        print("case branch");
+        ++indent;
+        print(ctx.ID().getText());
+        print(ctx.TYPE().getText());
         visitChildren(ctx);
         --indent;
         return null;
@@ -142,8 +167,9 @@ public class CoolVisitor extends CoolParserBaseVisitor<Void> {
 
     @Override
     public Void visitVarAssign(CoolParser.VarAssignContext ctx) {
-        print(ctx.ID().getText());
+        print("<-");
         ++indent;
+        print(ctx.ID().getText());
         visitChildren(ctx);
         --indent;
         return null;
@@ -199,7 +225,7 @@ public class CoolVisitor extends CoolParserBaseVisitor<Void> {
     public Void visitInstantiation(CoolParser.InstantiationContext ctx) {
         print("new");
         ++indent;
-        visitChildren(ctx);
+        print(ctx.TYPE().getText());
         --indent;
         return null;
     }
@@ -219,6 +245,7 @@ public class CoolVisitor extends CoolParserBaseVisitor<Void> {
     public Void visitSelfMethodCall(CoolParser.SelfMethodCallContext ctx) {
         print("implicit dispatch");
         ++indent;
+        print(ctx.method.getText());
         visitChildren(ctx);
         --indent;
         return null;
@@ -226,9 +253,12 @@ public class CoolVisitor extends CoolParserBaseVisitor<Void> {
 
     @Override
     public Void visitMethodCall(CoolParser.MethodCallContext ctx) {
-        print("dispatch");
+        print(".");
         ++indent;
-        visitChildren(ctx);
+        visit(ctx.obj);
+        if (ctx.type != null) print(ctx.type.getText());
+        print(ctx.method.getText());
+        ctx.args.forEach(this::visit);
         --indent;
         return null;
     }

@@ -45,6 +45,18 @@ public interface CoolParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitFormal(CoolParser.FormalContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link CoolParser#local}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitLocal(CoolParser.LocalContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link CoolParser#case_branch}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCase_branch(CoolParser.Case_branchContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code expression}
 	 * labeled alternative in {@link CoolParser#expr}.
 	 * @param ctx the parse tree

@@ -41,6 +41,8 @@ fragment X:[xX];
 fragment Y:[yY];
 fragment Z:[zZ];
 
+fragment ENDL : '\r'? '\n' ;
+
 // Keywords
 CLASS : C L A S S ;
 INHERITS : I N H E R I T S ;
@@ -103,16 +105,12 @@ FALSE : 'f' A L S E ;
 
 // Comments
 LINE_COMMENT : '--' ~[\r\n]* -> skip;
-EOF_BLOCK_COMMENT : '(*' (EOF_BLOCK_COMMENT | BLOCK_COMMENT | '*' ~')' | ~'*')* EOF { raiseError("EOF in comment"); } ;
 BLOCK_COMMENT : '(*' (EOF_BLOCK_COMMENT | BLOCK_COMMENT | '*' ~')' | ~'*')* '*)' -> skip;
+EOF_BLOCK_COMMENT : '(*' (EOF_BLOCK_COMMENT | BLOCK_COMMENT | '*' ~')' | ~'*')* EOF { raiseError("EOF in comment"); } ;
 UNMATCHED_BLOCK_COMMENT : '*)' { raiseError("Unmatched *)"); } ;
 
 // Strings
-UNTERMINATED_STRING : '"' ('\\' . | ~[\r\n"])* [\r\n] { raiseError("Unterminated string constant"); } ;
-
-EOF_STRING : '"' ('\\' . | ~[\r\n"])* EOF { raiseError("EOF in string constant"); } ;
-
-STRING : '"' ('\\' . | ~[\r\n"])* '"' {
+STRING : '"' ('\\' (ENDL | .) | ~[\r\n"])* '"' {
 var content = getText();
 // Remove leading & trailing quote character
 content = content.substring(1, content.length() - 1);
@@ -149,6 +147,10 @@ if (content.indexOf('\0') != -1) raiseError("String contains null character");
 else if (content.length() > 1024) raiseError("String constant too long");
 else setText(content);
 };
+
+UNTERMINATED_STRING : '"' ('\\' (ENDL | .) | ~[\r\n"])* [\r\n] { raiseError("Unterminated string constant"); } ;
+
+EOF_STRING : '"' ('\\' . | ~[\r\n"])* EOF { raiseError("EOF in string constant"); } ;
 
 // Unknown character
 
