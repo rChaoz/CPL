@@ -55,13 +55,13 @@ public class CoolParserBaseListener implements CoolParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterField(CoolParser.FieldContext ctx) { }
+	@Override public void enterAttribute(CoolParser.AttributeContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitField(CoolParser.FieldContext ctx) { }
+	@Override public void exitAttribute(CoolParser.AttributeContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

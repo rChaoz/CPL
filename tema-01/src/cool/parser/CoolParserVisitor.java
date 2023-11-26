@@ -32,12 +32,12 @@ public interface CoolParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitMethod(CoolParser.MethodContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code field}
+	 * Visit a parse tree produced by the {@code attribute}
 	 * labeled alternative in {@link CoolParser#feature}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitField(CoolParser.FieldContext ctx);
+	T visitAttribute(CoolParser.AttributeContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link CoolParser#formal}.
 	 * @param ctx the parse tree

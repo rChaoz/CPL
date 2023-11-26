@@ -175,14 +175,16 @@ public class CoolParser extends Parser {
 
 	@SuppressWarnings("CheckReturnValue")
 	public static class ClassContext extends ParserRuleContext {
+		public Token name;
+		public Token parent;
 		public TerminalNode CLASS() { return getToken(CoolParser.CLASS, 0); }
+		public TerminalNode LCURLY() { return getToken(CoolParser.LCURLY, 0); }
+		public TerminalNode RCURLY() { return getToken(CoolParser.RCURLY, 0); }
+		public TerminalNode SEMICOLON() { return getToken(CoolParser.SEMICOLON, 0); }
 		public List<TerminalNode> TYPE() { return getTokens(CoolParser.TYPE); }
 		public TerminalNode TYPE(int i) {
 			return getToken(CoolParser.TYPE, i);
 		}
-		public TerminalNode LCURLY() { return getToken(CoolParser.LCURLY, 0); }
-		public TerminalNode RCURLY() { return getToken(CoolParser.RCURLY, 0); }
-		public TerminalNode SEMICOLON() { return getToken(CoolParser.SEMICOLON, 0); }
 		public TerminalNode INHERITS() { return getToken(CoolParser.INHERITS, 0); }
 		public List<FeatureContext> feature() {
 			return getRuleContexts(FeatureContext.class);
@@ -219,7 +221,7 @@ public class CoolParser extends Parser {
 			setState(17);
 			match(CLASS);
 			setState(18);
-			match(TYPE);
+			((ClassContext)_localctx).name = match(TYPE);
 			setState(21);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
@@ -228,7 +230,7 @@ public class CoolParser extends Parser {
 				setState(19);
 				match(INHERITS);
 				setState(20);
-				match(TYPE);
+				((ClassContext)_localctx).parent = match(TYPE);
 				}
 			}
 
@@ -316,7 +318,7 @@ public class CoolParser extends Parser {
 		}
 	}
 	@SuppressWarnings("CheckReturnValue")
-	public static class FieldContext extends FeatureContext {
+	public static class AttributeContext extends FeatureContext {
 		public TerminalNode ID() { return getToken(CoolParser.ID, 0); }
 		public TerminalNode OF_TYPE() { return getToken(CoolParser.OF_TYPE, 0); }
 		public TerminalNode TYPE() { return getToken(CoolParser.TYPE, 0); }
@@ -325,18 +327,18 @@ public class CoolParser extends Parser {
 		public ExprContext expr() {
 			return getRuleContext(ExprContext.class,0);
 		}
-		public FieldContext(FeatureContext ctx) { copyFrom(ctx); }
+		public AttributeContext(FeatureContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof CoolParserListener ) ((CoolParserListener)listener).enterField(this);
+			if ( listener instanceof CoolParserListener ) ((CoolParserListener)listener).enterAttribute(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof CoolParserListener ) ((CoolParserListener)listener).exitField(this);
+			if ( listener instanceof CoolParserListener ) ((CoolParserListener)listener).exitAttribute(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof CoolParserVisitor ) return ((CoolParserVisitor<? extends T>)visitor).visitField(this);
+			if ( visitor instanceof CoolParserVisitor ) return ((CoolParserVisitor<? extends T>)visitor).visitAttribute(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -400,7 +402,7 @@ public class CoolParser extends Parser {
 				}
 				break;
 			case 2:
-				_localctx = new FieldContext(_localctx);
+				_localctx = new AttributeContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
 				setState(53);
@@ -524,14 +526,15 @@ public class CoolParser extends Parser {
 	@SuppressWarnings("CheckReturnValue")
 	public static class ComparisonContext extends ExprContext {
 		public ExprContext left;
+		public Token op;
 		public ExprContext right;
-		public TerminalNode LESS() { return getToken(CoolParser.LESS, 0); }
 		public List<ExprContext> expr() {
 			return getRuleContexts(ExprContext.class);
 		}
 		public ExprContext expr(int i) {
 			return getRuleContext(ExprContext.class,i);
 		}
+		public TerminalNode LESS() { return getToken(CoolParser.LESS, 0); }
 		public TerminalNode LESS_EQ() { return getToken(CoolParser.LESS_EQ, 0); }
 		public TerminalNode EQ() { return getToken(CoolParser.EQ, 0); }
 		public ComparisonContext(ExprContext ctx) { copyFrom(ctx); }
@@ -674,10 +677,11 @@ public class CoolParser extends Parser {
 	}
 	@SuppressWarnings("CheckReturnValue")
 	public static class UnaryContext extends ExprContext {
-		public TerminalNode COMPLEMENT() { return getToken(CoolParser.COMPLEMENT, 0); }
+		public Token op;
 		public ExprContext expr() {
 			return getRuleContext(ExprContext.class,0);
 		}
+		public TerminalNode COMPLEMENT() { return getToken(CoolParser.COMPLEMENT, 0); }
 		public UnaryContext(ExprContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
@@ -1309,7 +1313,7 @@ public class CoolParser extends Parser {
 				_ctx = _localctx;
 				_prevctx = _localctx;
 				setState(151);
-				match(COMPLEMENT);
+				((UnaryContext)_localctx).op = match(COMPLEMENT);
 				setState(152);
 				expr(11);
 				}
@@ -1456,7 +1460,7 @@ public class CoolParser extends Parser {
 						setState(178);
 						if (!(precpred(_ctx, 10))) throw new FailedPredicateException(this, "precpred(_ctx, 10)");
 						setState(179);
-						match(LESS);
+						((ComparisonContext)_localctx).op = match(LESS);
 						setState(180);
 						((ComparisonContext)_localctx).right = expr(11);
 						}
@@ -1469,7 +1473,7 @@ public class CoolParser extends Parser {
 						setState(181);
 						if (!(precpred(_ctx, 9))) throw new FailedPredicateException(this, "precpred(_ctx, 9)");
 						setState(182);
-						match(LESS_EQ);
+						((ComparisonContext)_localctx).op = match(LESS_EQ);
 						setState(183);
 						((ComparisonContext)_localctx).right = expr(10);
 						}
@@ -1482,7 +1486,7 @@ public class CoolParser extends Parser {
 						setState(184);
 						if (!(precpred(_ctx, 8))) throw new FailedPredicateException(this, "precpred(_ctx, 8)");
 						setState(185);
-						match(EQ);
+						((ComparisonContext)_localctx).op = match(EQ);
 						setState(186);
 						((ComparisonContext)_localctx).right = expr(9);
 						}

@@ -12,12 +12,12 @@ tokens { NONE }
 
 program : class+ EOF ;
 
-class : CLASS TYPE (INHERITS TYPE)? LCURLY feature* RCURLY SEMICOLON;
+class : CLASS name=TYPE (INHERITS parent=TYPE)? LCURLY feature* RCURLY SEMICOLON;
 
 feature
     : ID LPAREN (formal (COMMA formal)*)? RPAREN OF_TYPE TYPE
             LCURLY expr RCURLY SEMICOLON                        # method
-    | ID OF_TYPE TYPE (ASSIGN expr)? SEMICOLON                  # field ;
+    | ID OF_TYPE TYPE (ASSIGN expr)? SEMICOLON                  # attribute ;
 
 formal : ID OF_TYPE TYPE ;
 
@@ -39,10 +39,10 @@ expr
     | left=expr op=MINUS right=expr                                                 # arithmetic
     | left=expr op=MULTIPLY right=expr                                              # arithmetic
     | left=expr op=DIVIDE right=expr                                                # arithmetic
-    | COMPLEMENT expr                                                               # unary
-    | left=expr LESS right=expr                                                     # comparison
-    | left=expr LESS_EQ right=expr                                                  # comparison
-    | left=expr EQ right=expr                                                       # comparison
+    | op=COMPLEMENT expr                                                            # unary
+    | left=expr op=LESS right=expr                                                  # comparison
+    | left=expr op=LESS_EQ right=expr                                               # comparison
+    | left=expr op=EQ right=expr                                                    # comparison
     | NOT expr                                                                      # negate
     | LPAREN expr RPAREN                                                            # expression
     | ID                                                                            # var
