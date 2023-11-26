@@ -21,7 +21,7 @@ public class CoolParser extends Parser {
 	public static final int
 		ERROR=1, CLASS=2, INHERITS=3, NEW=4, IF=5, THEN=6, ELSE=7, FI=8, LET=9, 
 		IN=10, CASE=11, OF=12, ESAC=13, LOOP=14, POOL=15, WHILE=16, ISVOID=17, 
-		NOT=18, COMPLEMENT=19, PLUS=20, MINUS=21, MULTIPLY=22, DIVIDE=23, EQ=24, 
+		NOT=18, COMPLEMENT=19, ADD=20, SUBTRACT=21, MULTIPLY=22, DIVIDE=23, EQ=24, 
 		LESS=25, LESS_EQ=26, LPAREN=27, RPAREN=28, LCURLY=29, RCURLY=30, OF_TYPE=31, 
 		AT=32, DOT=33, COMMA=34, CASE_ARROW=35, ASSIGN=36, SEMICOLON=37, TYPE=38, 
 		ID=39, WS=40, INTEGER=41, TRUE=42, FALSE=43, LINE_COMMENT=44, BLOCK_COMMENT=45, 
@@ -51,7 +51,7 @@ public class CoolParser extends Parser {
 		return new String[] {
 			null, "ERROR", "CLASS", "INHERITS", "NEW", "IF", "THEN", "ELSE", "FI", 
 			"LET", "IN", "CASE", "OF", "ESAC", "LOOP", "POOL", "WHILE", "ISVOID", 
-			"NOT", "COMPLEMENT", "PLUS", "MINUS", "MULTIPLY", "DIVIDE", "EQ", "LESS", 
+			"NOT", "COMPLEMENT", "ADD", "SUBTRACT", "MULTIPLY", "DIVIDE", "EQ", "LESS", 
 			"LESS_EQ", "LPAREN", "RPAREN", "LCURLY", "RCURLY", "OF_TYPE", "AT", "DOT", 
 			"COMMA", "CASE_ARROW", "ASSIGN", "SEMICOLON", "TYPE", "ID", "WS", "INTEGER", 
 			"TRUE", "FALSE", "LINE_COMMENT", "BLOCK_COMMENT", "EOF_BLOCK_COMMENT", 
@@ -789,8 +789,8 @@ public class CoolParser extends Parser {
 		}
 		public TerminalNode MULTIPLY() { return getToken(CoolParser.MULTIPLY, 0); }
 		public TerminalNode DIVIDE() { return getToken(CoolParser.DIVIDE, 0); }
-		public TerminalNode PLUS() { return getToken(CoolParser.PLUS, 0); }
-		public TerminalNode MINUS() { return getToken(CoolParser.MINUS, 0); }
+		public TerminalNode ADD() { return getToken(CoolParser.ADD, 0); }
+		public TerminalNode SUBTRACT() { return getToken(CoolParser.SUBTRACT, 0); }
 		public ArithmeticContext(ExprContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
@@ -918,37 +918,6 @@ public class CoolParser extends Parser {
 		}
 	}
 	@SuppressWarnings("CheckReturnValue")
-	public static class BlockContext extends ExprContext {
-		public ExprContext expr;
-		public List<ExprContext> body = new ArrayList<ExprContext>();
-		public TerminalNode LCURLY() { return getToken(CoolParser.LCURLY, 0); }
-		public TerminalNode RCURLY() { return getToken(CoolParser.RCURLY, 0); }
-		public List<TerminalNode> SEMICOLON() { return getTokens(CoolParser.SEMICOLON); }
-		public TerminalNode SEMICOLON(int i) {
-			return getToken(CoolParser.SEMICOLON, i);
-		}
-		public List<ExprContext> expr() {
-			return getRuleContexts(ExprContext.class);
-		}
-		public ExprContext expr(int i) {
-			return getRuleContext(ExprContext.class,i);
-		}
-		public BlockContext(ExprContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof CoolParserListener ) ((CoolParserListener)listener).enterBlock(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof CoolParserListener ) ((CoolParserListener)listener).exitBlock(this);
-		}
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof CoolParserVisitor ) return ((CoolParserVisitor<? extends T>)visitor).visitBlock(this);
-			else return visitor.visitChildren(this);
-		}
-	}
-	@SuppressWarnings("CheckReturnValue")
 	public static class LetContext extends ExprContext {
 		public LocalContext local;
 		public List<LocalContext> vars = new ArrayList<LocalContext>();
@@ -980,6 +949,37 @@ public class CoolParser extends Parser {
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof CoolParserVisitor ) return ((CoolParserVisitor<? extends T>)visitor).visitLet(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class BlockContext extends ExprContext {
+		public ExprContext expr;
+		public List<ExprContext> body = new ArrayList<ExprContext>();
+		public TerminalNode LCURLY() { return getToken(CoolParser.LCURLY, 0); }
+		public TerminalNode RCURLY() { return getToken(CoolParser.RCURLY, 0); }
+		public List<TerminalNode> SEMICOLON() { return getTokens(CoolParser.SEMICOLON); }
+		public TerminalNode SEMICOLON(int i) {
+			return getToken(CoolParser.SEMICOLON, i);
+		}
+		public List<ExprContext> expr() {
+			return getRuleContexts(ExprContext.class);
+		}
+		public ExprContext expr(int i) {
+			return getRuleContext(ExprContext.class,i);
+		}
+		public BlockContext(ExprContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof CoolParserListener ) ((CoolParserListener)listener).enterBlock(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof CoolParserListener ) ((CoolParserListener)listener).exitBlock(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof CoolParserVisitor ) return ((CoolParserVisitor<? extends T>)visitor).visitBlock(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -1049,7 +1049,9 @@ public class CoolParser extends Parser {
 	@SuppressWarnings("CheckReturnValue")
 	public static class CaseContext extends ExprContext {
 		public TerminalNode CASE() { return getToken(CoolParser.CASE, 0); }
-		public TerminalNode ID() { return getToken(CoolParser.ID, 0); }
+		public ExprContext expr() {
+			return getRuleContext(ExprContext.class,0);
+		}
 		public TerminalNode OF() { return getToken(CoolParser.OF, 0); }
 		public TerminalNode ESAC() { return getToken(CoolParser.ESAC, 0); }
 		public List<Case_branchContext> case_branch() {
@@ -1278,92 +1280,92 @@ public class CoolParser extends Parser {
 				break;
 			case 8:
 				{
-				_localctx = new BlockContext(_localctx);
-				_ctx = _localctx;
-				_prevctx = _localctx;
-				setState(122);
-				match(LCURLY);
-				setState(126); 
-				_errHandler.sync(this);
-				_la = _input.LA(1);
-				do {
-					{
-					{
-					setState(123);
-					((BlockContext)_localctx).expr = expr(0);
-					((BlockContext)_localctx).body.add(((BlockContext)_localctx).expr);
-					setState(124);
-					match(SEMICOLON);
-					}
-					}
-					setState(128); 
-					_errHandler.sync(this);
-					_la = _input.LA(1);
-				} while ( (((_la) & ~0x3f) == 0 && ((1L << _la) & 297418567387696L) != 0) );
-				setState(130);
-				match(RCURLY);
-				}
-				break;
-			case 9:
-				{
 				_localctx = new LetContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(132);
+				setState(122);
 				match(LET);
-				setState(133);
+				setState(123);
 				((LetContext)_localctx).local = local();
 				((LetContext)_localctx).vars.add(((LetContext)_localctx).local);
-				setState(138);
+				setState(128);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 				while (_la==COMMA) {
 					{
 					{
-					setState(134);
+					setState(124);
 					match(COMMA);
-					setState(135);
+					setState(125);
 					((LetContext)_localctx).local = local();
 					((LetContext)_localctx).vars.add(((LetContext)_localctx).local);
 					}
 					}
-					setState(140);
+					setState(130);
 					_errHandler.sync(this);
 					_la = _input.LA(1);
 				}
-				setState(141);
+				setState(131);
 				match(IN);
-				setState(142);
-				((LetContext)_localctx).body = expr(9);
+				setState(132);
+				((LetContext)_localctx).body = expr(10);
 				}
 				break;
-			case 10:
+			case 9:
 				{
 				_localctx = new CaseContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(144);
+				setState(134);
 				match(CASE);
-				setState(145);
-				match(ID);
-				setState(146);
+				setState(135);
+				expr(0);
+				setState(136);
 				match(OF);
+				setState(138); 
+				_errHandler.sync(this);
+				_la = _input.LA(1);
+				do {
+					{
+					{
+					setState(137);
+					case_branch();
+					}
+					}
+					setState(140); 
+					_errHandler.sync(this);
+					_la = _input.LA(1);
+				} while ( _la==ID );
+				setState(142);
+				match(ESAC);
+				}
+				break;
+			case 10:
+				{
+				_localctx = new BlockContext(_localctx);
+				_ctx = _localctx;
+				_prevctx = _localctx;
+				setState(144);
+				match(LCURLY);
 				setState(148); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 				do {
 					{
 					{
-					setState(147);
-					case_branch();
+					setState(145);
+					((BlockContext)_localctx).expr = expr(0);
+					((BlockContext)_localctx).body.add(((BlockContext)_localctx).expr);
+					setState(146);
+					match(SEMICOLON);
 					}
 					}
 					setState(150); 
 					_errHandler.sync(this);
 					_la = _input.LA(1);
-				} while ( _la==ID );
+				} while ( (((_la) & ~0x3f) == 0 && ((1L << _la) & 297418567387696L) != 0) );
 				setState(152);
-				match(ESAC);
+				match(RCURLY);
 				}
 				break;
 			case 11:
@@ -1480,7 +1482,7 @@ public class CoolParser extends Parser {
 						setState(171);
 						((ArithmeticContext)_localctx).op = _input.LT(1);
 						_la = _input.LA(1);
-						if ( !(_la==PLUS || _la==MINUS) ) {
+						if ( !(_la==ADD || _la==SUBTRACT) ) {
 							((ArithmeticContext)_localctx).op = (Token)_errHandler.recoverInline(this);
 						}
 						else {
@@ -1633,10 +1635,10 @@ public class CoolParser extends Parser {
 		"\u0006\u0001\u0006\u0001\u0006\u0001\u0006\u0001\u0006\u0001\u0006\u0001"+
 		"\u0006\u0001\u0006\u0001\u0006\u0001\u0006\u0001\u0006\u0001\u0006\u0001"+
 		"\u0006\u0001\u0006\u0001\u0006\u0001\u0006\u0001\u0006\u0001\u0006\u0001"+
-		"\u0006\u0001\u0006\u0001\u0006\u0001\u0006\u0001\u0006\u0001\u0006\u0004"+
-		"\u0006\u007f\b\u0006\u000b\u0006\f\u0006\u0080\u0001\u0006\u0001\u0006"+
-		"\u0001\u0006\u0001\u0006\u0001\u0006\u0001\u0006\u0005\u0006\u0089\b\u0006"+
-		"\n\u0006\f\u0006\u008c\t\u0006\u0001\u0006\u0001\u0006\u0001\u0006\u0001"+
+		"\u0006\u0001\u0006\u0001\u0006\u0001\u0006\u0001\u0006\u0001\u0006\u0005"+
+		"\u0006\u007f\b\u0006\n\u0006\f\u0006\u0082\t\u0006\u0001\u0006\u0001\u0006"+
+		"\u0001\u0006\u0001\u0006\u0001\u0006\u0001\u0006\u0001\u0006\u0004\u0006"+
+		"\u008b\b\u0006\u000b\u0006\f\u0006\u008c\u0001\u0006\u0001\u0006\u0001"+
 		"\u0006\u0001\u0006\u0001\u0006\u0001\u0006\u0004\u0006\u0095\b\u0006\u000b"+
 		"\u0006\f\u0006\u0096\u0001\u0006\u0001\u0006\u0001\u0006\u0001\u0006\u0001"+
 		"\u0006\u0001\u0006\u0001\u0006\u0001\u0006\u0001\u0006\u0001\u0006\u0001"+
@@ -1695,22 +1697,22 @@ public class CoolParser extends Parser {
 		"\u0007\u0000\u0000qr\u0003\f\u0006\u0000rs\u0005\b\u0000\u0000s\u00a6"+
 		"\u0001\u0000\u0000\u0000tu\u0005\u0010\u0000\u0000uv\u0003\f\u0006\u0000"+
 		"vw\u0005\u000e\u0000\u0000wx\u0003\f\u0006\u0000xy\u0005\u000f\u0000\u0000"+
-		"y\u00a6\u0001\u0000\u0000\u0000z~\u0005\u001d\u0000\u0000{|\u0003\f\u0006"+
-		"\u0000|}\u0005%\u0000\u0000}\u007f\u0001\u0000\u0000\u0000~{\u0001\u0000"+
-		"\u0000\u0000\u007f\u0080\u0001\u0000\u0000\u0000\u0080~\u0001\u0000\u0000"+
-		"\u0000\u0080\u0081\u0001\u0000\u0000\u0000\u0081\u0082\u0001\u0000\u0000"+
-		"\u0000\u0082\u0083\u0005\u001e\u0000\u0000\u0083\u00a6\u0001\u0000\u0000"+
-		"\u0000\u0084\u0085\u0005\t\u0000\u0000\u0085\u008a\u0003\b\u0004\u0000"+
-		"\u0086\u0087\u0005\"\u0000\u0000\u0087\u0089\u0003\b\u0004\u0000\u0088"+
-		"\u0086\u0001\u0000\u0000\u0000\u0089\u008c\u0001\u0000\u0000\u0000\u008a"+
-		"\u0088\u0001\u0000\u0000\u0000\u008a\u008b\u0001\u0000\u0000\u0000\u008b"+
-		"\u008d\u0001\u0000\u0000\u0000\u008c\u008a\u0001\u0000\u0000\u0000\u008d"+
-		"\u008e\u0005\n\u0000\u0000\u008e\u008f\u0003\f\u0006\t\u008f\u00a6\u0001"+
-		"\u0000\u0000\u0000\u0090\u0091\u0005\u000b\u0000\u0000\u0091\u0092\u0005"+
-		"\'\u0000\u0000\u0092\u0094\u0005\f\u0000\u0000\u0093\u0095\u0003\n\u0005"+
-		"\u0000\u0094\u0093\u0001\u0000\u0000\u0000\u0095\u0096\u0001\u0000\u0000"+
-		"\u0000\u0096\u0094\u0001\u0000\u0000\u0000\u0096\u0097\u0001\u0000\u0000"+
-		"\u0000\u0097\u0098\u0001\u0000\u0000\u0000\u0098\u0099\u0005\r\u0000\u0000"+
+		"y\u00a6\u0001\u0000\u0000\u0000z{\u0005\t\u0000\u0000{\u0080\u0003\b\u0004"+
+		"\u0000|}\u0005\"\u0000\u0000}\u007f\u0003\b\u0004\u0000~|\u0001\u0000"+
+		"\u0000\u0000\u007f\u0082\u0001\u0000\u0000\u0000\u0080~\u0001\u0000\u0000"+
+		"\u0000\u0080\u0081\u0001\u0000\u0000\u0000\u0081\u0083\u0001\u0000\u0000"+
+		"\u0000\u0082\u0080\u0001\u0000\u0000\u0000\u0083\u0084\u0005\n\u0000\u0000"+
+		"\u0084\u0085\u0003\f\u0006\n\u0085\u00a6\u0001\u0000\u0000\u0000\u0086"+
+		"\u0087\u0005\u000b\u0000\u0000\u0087\u0088\u0003\f\u0006\u0000\u0088\u008a"+
+		"\u0005\f\u0000\u0000\u0089\u008b\u0003\n\u0005\u0000\u008a\u0089\u0001"+
+		"\u0000\u0000\u0000\u008b\u008c\u0001\u0000\u0000\u0000\u008c\u008a\u0001"+
+		"\u0000\u0000\u0000\u008c\u008d\u0001\u0000\u0000\u0000\u008d\u008e\u0001"+
+		"\u0000\u0000\u0000\u008e\u008f\u0005\r\u0000\u0000\u008f\u00a6\u0001\u0000"+
+		"\u0000\u0000\u0090\u0094\u0005\u001d\u0000\u0000\u0091\u0092\u0003\f\u0006"+
+		"\u0000\u0092\u0093\u0005%\u0000\u0000\u0093\u0095\u0001\u0000\u0000\u0000"+
+		"\u0094\u0091\u0001\u0000\u0000\u0000\u0095\u0096\u0001\u0000\u0000\u0000"+
+		"\u0096\u0094\u0001\u0000\u0000\u0000\u0096\u0097\u0001\u0000\u0000\u0000"+
+		"\u0097\u0098\u0001\u0000\u0000\u0000\u0098\u0099\u0005\u001e\u0000\u0000"+
 		"\u0099\u00a6\u0001\u0000\u0000\u0000\u009a\u009b\u0005\u0004\u0000\u0000"+
 		"\u009b\u00a6\u0005&\u0000\u0000\u009c\u009d\u0005\u001b\u0000\u0000\u009d"+
 		"\u009e\u0003\f\u0006\u0000\u009e\u009f\u0005\u001c\u0000\u0000\u009f\u00a6"+
@@ -1720,7 +1722,7 @@ public class CoolParser extends Parser {
 		"c\u0001\u0000\u0000\u0000\u00a5e\u0001\u0000\u0000\u0000\u00a5g\u0001"+
 		"\u0000\u0000\u0000\u00a5i\u0001\u0000\u0000\u0000\u00a5l\u0001\u0000\u0000"+
 		"\u0000\u00a5t\u0001\u0000\u0000\u0000\u00a5z\u0001\u0000\u0000\u0000\u00a5"+
-		"\u0084\u0001\u0000\u0000\u0000\u00a5\u0090\u0001\u0000\u0000\u0000\u00a5"+
+		"\u0086\u0001\u0000\u0000\u0000\u00a5\u0090\u0001\u0000\u0000\u0000\u00a5"+
 		"\u009a\u0001\u0000\u0000\u0000\u00a5\u009c\u0001\u0000\u0000\u0000\u00a5"+
 		"\u00a0\u0001\u0000\u0000\u0000\u00a5\u00a1\u0001\u0000\u0000\u0000\u00a5"+
 		"\u00a2\u0001\u0000\u0000\u0000\u00a5\u00a3\u0001\u0000\u0000\u0000\u00a5"+
@@ -1744,7 +1746,7 @@ public class CoolParser extends Parser {
 		"\u0000\u0000\u00c3\u00b0\u0001\u0000\u0000\u0000\u00c4\u00c7\u0001\u0000"+
 		"\u0000\u0000\u00c5\u00c3\u0001\u0000\u0000\u0000\u00c5\u00c6\u0001\u0000"+
 		"\u0000\u0000\u00c6\r\u0001\u0000\u0000\u0000\u00c7\u00c5\u0001\u0000\u0000"+
-		"\u0000\u0013\u0011\u0019\u001f,/>AL]`\u0080\u008a\u0096\u00a5\u00b3\u00bd"+
+		"\u0000\u0013\u0011\u0019\u001f,/>AL]`\u0080\u008c\u0096\u00a5\u00b3\u00bd"+
 		"\u00c0\u00c3\u00c5";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());

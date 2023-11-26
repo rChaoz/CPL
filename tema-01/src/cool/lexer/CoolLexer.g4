@@ -69,8 +69,8 @@ NOT : N O T ;
 
 // Other special characters
 COMPLEMENT : '~' ;
-PLUS : '+' ;
-MINUS : '-' ;
+ADD : '+' ;
+SUBTRACT : '-' ;
 MULTIPLY : '*' ;
 DIVIDE : '/' ;
 

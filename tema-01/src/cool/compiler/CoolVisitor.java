@@ -1,265 +1,178 @@
 package cool.compiler;
 
+import cool.compiler.ast.*;
 import cool.parser.CoolParser;
 import cool.parser.CoolParserBaseVisitor;
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
 
-public class CoolVisitor extends CoolParserBaseVisitor<Void> {
-    // Helper code to print with indents
-    int indent = 0;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
-    private void print(Object any) {
-        for (int i = 0; i < indent; ++i) System.out.print("  ");
-        System.out.println(any);
+public class CoolVisitor extends CoolParserBaseVisitor<ASTNode> {
+    private <T extends ParserRuleContext, R extends ASTNode> List<R> visitAll(List<T> list, Function<T, R> visitor) {
+        return list.stream().map(visitor).collect(Collectors.toList());
+    }
+
+    private String text(Token token) {
+        return token == null ? null : token.getText();
+    }
+
+    private Expression visitExpr(CoolParser.ExprContext ctx) {
+        return ctx == null ? null : (Expression) visit(ctx);
+    }
+
+    @Override
+    public ASTNode visitExpression(CoolParser.ExpressionContext ctx) {
+        return visitExpr(ctx.expr());
     }
 
     // Program structure: classes, methods, attributes
 
     @Override
-    public Void visitProgram(CoolParser.ProgramContext ctx) {
-        print("program");
-        ++indent;
-        visitChildren(ctx);
-        --indent;
-        return null;
+    public Program visitProgram(CoolParser.ProgramContext ctx) {
+        return new Program(ctx.start, visitAll(ctx.class_(), this::visitClass));
     }
 
     @Override
-    public Void visitClass(CoolParser.ClassContext ctx) {
-        print("class");
-        ++indent;
-        print(ctx.name.getText());
-        if (ctx.parent != null) print(ctx.parent.getText());
-        visitChildren(ctx);
-        --indent;
-        return null;
+    public PClass visitClass(CoolParser.ClassContext ctx) {
+        return new PClass(ctx.start, ctx.name.getText(), text(ctx.parent), ctx.feature().stream().map(c -> {
+            if (c instanceof CoolParser.AttributeContext) return visitAttribute((CoolParser.AttributeContext) c);
+            else if (c instanceof CoolParser.MethodContext) return visitMethod((CoolParser.MethodContext) c);
+            else throw new RuntimeException("Unknown Feature context type: " + c);
+        }).collect(Collectors.toList()));
     }
 
     @Override
-    public Void visitMethod(CoolParser.MethodContext ctx) {
-        print("method");
-        ++indent;
-        print(ctx.ID().getText());
-        ctx.args.forEach(this::visit);
-        print(ctx.TYPE().getText());
-        visit(ctx.expr());
-        --indent;
-        return null;
+    public Attribute visitAttribute(CoolParser.AttributeContext ctx) {
+        return new Attribute(ctx.start, ctx.ID().getText(), ctx.TYPE().getText(), visitExpr(ctx.expr()));
     }
 
     @Override
-    public Void visitFormal(CoolParser.FormalContext ctx) {
-        print("formal");
-        ++indent;
-        print(ctx.ID().getText());
-        print(ctx.TYPE().getText());
-        --indent;
-        return null;
+    public Method visitMethod(CoolParser.MethodContext ctx) {
+        return new Method(ctx.start, ctx.ID().getText(), ctx.TYPE().getText(), visitAll(ctx.args, this::visitFormal), visitExpr(ctx.expr()));
     }
 
     @Override
-    public Void visitAttribute(CoolParser.AttributeContext ctx) {
-        print("attribute");
-        ++indent;
-        print(ctx.ID().getText());
-        print(ctx.TYPE().getText());
-        visitChildren(ctx);
-        --indent;
-        return null;
+    public Formal visitFormal(CoolParser.FormalContext ctx) {
+        return new Formal(ctx.start, ctx.ID().getText(), ctx.TYPE().getText());
     }
 
     // Complex expressions
 
     @Override
-    public Void visitIf(CoolParser.IfContext ctx) {
-        print("if");
-        ++indent;
-        visitChildren(ctx);
-        --indent;
-        return null;
+    public If visitIf(CoolParser.IfContext ctx) {
+        return new If(ctx.start, visitExpr(ctx.cond), visitExpr(ctx.thenBranch), visitExpr(ctx.elseBranch));
     }
 
     @Override
-    public Void visitWhile(CoolParser.WhileContext ctx) {
-        print("while");
-        ++indent;
-        visitChildren(ctx);
-        --indent;
-        return null;
+    public While visitWhile(CoolParser.WhileContext ctx) {
+        return new While(ctx.start, visitExpr(ctx.cond), visitExpr(ctx.body));
     }
 
     @Override
-    public Void visitLet(CoolParser.LetContext ctx) {
-        print("let");
-        ++indent;
-        visitChildren(ctx);
-        --indent;
-        return null;
+    public Let visitLet(CoolParser.LetContext ctx) {
+        return new Let(ctx.start, visitAll(ctx.vars, this::visitLocal), visitExpr(ctx.body));
     }
 
     @Override
-    public Void visitLocal(CoolParser.LocalContext ctx) {
-        print("local");
-        ++indent;
-        print(ctx.ID().getText());
-        print(ctx.TYPE().getText());
-        visitChildren(ctx);
-        --indent;
-        return null;
+    public LetLocal visitLocal(CoolParser.LocalContext ctx) {
+        return new LetLocal(ctx.start, ctx.ID().getText(), ctx.TYPE().getText(), visitExpr(ctx.expr()));
     }
 
     @Override
-    public Void visitCase(CoolParser.CaseContext ctx) {
-        print("case");
-        ++indent;
-        print(ctx.ID().getText());
-        visitChildren(ctx);
-        --indent;
-        return null;
+    public Case visitCase(CoolParser.CaseContext ctx) {
+        return new Case(ctx.start, visitExpr(ctx.expr()), visitAll(ctx.case_branch(), this::visitCase_branch));
     }
 
     @Override
-    public Void visitCase_branch(CoolParser.Case_branchContext ctx) {
-        print("case branch");
-        ++indent;
-        print(ctx.ID().getText());
-        print(ctx.TYPE().getText());
-        visitChildren(ctx);
-        --indent;
-        return null;
+    public CaseBranch visitCase_branch(CoolParser.Case_branchContext ctx) {
+        return new CaseBranch(ctx.start, ctx.ID().getText(), ctx.TYPE().getText(), visitExpr(ctx.expr()));
     }
 
     // Arithmetic & comparison
 
     @Override
-    public Void visitArithmetic(CoolParser.ArithmeticContext ctx) {
-        print(ctx.op.getText());
-        ++indent;
-        visitChildren(ctx);
-        --indent;
-        return null;
+    public Binary visitArithmetic(CoolParser.ArithmeticContext ctx) {
+        return new Binary(ctx.start, Binary.Operation.findBySymbol(ctx.op.getText()), visitExpr(ctx.left), visitExpr(ctx.right));
     }
 
     @Override
-    public Void visitUnary(CoolParser.UnaryContext ctx) {
-        print(ctx.op.getText());
-        ++indent;
-        visitChildren(ctx);
-        --indent;
-        return null;
+    public Unary visitUnary(CoolParser.UnaryContext ctx) {
+        return new Unary(ctx.start, Unary.Operation.findBySymbol(ctx.op.getText()), visitExpr(ctx.expr()));
     }
 
     @Override
-    public Void visitComparison(CoolParser.ComparisonContext ctx) {
-        print(ctx.op.getText());
-        ++indent;
-        visitChildren(ctx);
-        --indent;
-        return null;
+    public Binary visitComparison(CoolParser.ComparisonContext ctx) {
+        return new Binary(ctx.start, Binary.Operation.findBySymbol(ctx.op.getText()), visitExpr(ctx.left), visitExpr(ctx.right));
     }
 
     // Variable stuff
 
     @Override
-    public Void visitVar(CoolParser.VarContext ctx) {
-        print(ctx.getText());
-        return null;
+    public Variable visitVar(CoolParser.VarContext ctx) {
+        return new Variable(ctx.start, ctx.ID().getText());
     }
 
     @Override
-    public Void visitVarAssign(CoolParser.VarAssignContext ctx) {
-        print("<-");
-        ++indent;
-        print(ctx.ID().getText());
-        visitChildren(ctx);
-        --indent;
-        return null;
+    public Assign visitVarAssign(CoolParser.VarAssignContext ctx) {
+        return new Assign(ctx.start, ctx.ID().getText(), visitExpr(ctx.expr()));
     }
 
     // Literals
 
     @Override
-    public Void visitLiteralInteger(CoolParser.LiteralIntegerContext ctx) {
-        print(ctx.getText());
-        return null;
+    public Literal visitLiteralInteger(CoolParser.LiteralIntegerContext ctx) {
+        return new Literal(ctx.start, Literal.Type.INTEGER, ctx.getText());
     }
 
     @Override
-    public Void visitLiteralString(CoolParser.LiteralStringContext ctx) {
-        print(ctx.getText());
-        return null;
+    public Literal visitLiteralString(CoolParser.LiteralStringContext ctx) {
+        return new Literal(ctx.start, Literal.Type.STRING, ctx.getText());
     }
 
     @Override
-    public Void visitLiteralTrue(CoolParser.LiteralTrueContext ctx) {
-        print(ctx.getText());
-        return null;
+    public Literal visitLiteralTrue(CoolParser.LiteralTrueContext ctx) {
+        return new Literal(ctx.start, Literal.Type.BOOLEAN, "true");
     }
 
     @Override
-    public Void visitLiteralFalse(CoolParser.LiteralFalseContext ctx) {
-        print(ctx.getText());
-        return null;
+    public Literal visitLiteralFalse(CoolParser.LiteralFalseContext ctx) {
+        return new Literal(ctx.start, Literal.Type.BOOLEAN, "false");
     }
 
     // Single-argument expressions
 
     @Override
-    public Void visitIsvoid(CoolParser.IsvoidContext ctx) {
-        print("isvoid");
-        ++indent;
-        visitChildren(ctx);
-        --indent;
-        return null;
+    public IsVoid visitIsvoid(CoolParser.IsvoidContext ctx) {
+        return new IsVoid(ctx.start, visitExpr(ctx.expr()));
     }
 
     @Override
-    public Void visitNegate(CoolParser.NegateContext ctx) {
-        print("not");
-        ++indent;
-        visitChildren(ctx);
-        --indent;
-        return null;
+    public Unary visitNegate(CoolParser.NegateContext ctx) {
+        return new Unary(ctx.start, Unary.Operation.findBySymbol("not"), visitExpr(ctx.expr()));
     }
 
     @Override
-    public Void visitInstantiation(CoolParser.InstantiationContext ctx) {
-        print("new");
-        ++indent;
-        print(ctx.TYPE().getText());
-        --indent;
-        return null;
+    public Instantiation visitInstantiation(CoolParser.InstantiationContext ctx) {
+        return new Instantiation(ctx.start, ctx.TYPE().getText());
     }
 
     // Others
 
     @Override
-    public Void visitBlock(CoolParser.BlockContext ctx) {
-        print("block");
-        ++indent;
-        visitChildren(ctx);
-        --indent;
-        return null;
+    public Block visitBlock(CoolParser.BlockContext ctx) {
+        return new Block(ctx.start, visitAll(ctx.body, this::visitExpr));
     }
 
     @Override
-    public Void visitSelfMethodCall(CoolParser.SelfMethodCallContext ctx) {
-        print("implicit dispatch");
-        ++indent;
-        print(ctx.method.getText());
-        visitChildren(ctx);
-        --indent;
-        return null;
+    public MethodCall visitSelfMethodCall(CoolParser.SelfMethodCallContext ctx) {
+        return new MethodCall(ctx.start, null, null, ctx.method.getText(), visitAll(ctx.args, this::visitExpr));
     }
 
     @Override
-    public Void visitMethodCall(CoolParser.MethodCallContext ctx) {
-        print(".");
-        ++indent;
-        visit(ctx.obj);
-        if (ctx.type != null) print(ctx.type.getText());
-        print(ctx.method.getText());
-        ctx.args.forEach(this::visit);
-        --indent;
-        return null;
+    public MethodCall visitMethodCall(CoolParser.MethodCallContext ctx) {
+        return new MethodCall(ctx.start, visitExpr(ctx.obj), text(ctx.type), ctx.method.getText(), visitAll(ctx.args, this::visitExpr));
     }
 }

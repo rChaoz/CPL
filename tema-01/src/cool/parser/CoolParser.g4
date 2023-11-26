@@ -32,16 +32,16 @@ expr
     | op=COMPLEMENT expr                                                            # unary
     | ISVOID expr                                                                   # isvoid
     | left=expr op=(MULTIPLY | DIVIDE) right=expr                                   # arithmetic
-    | left=expr op=(PLUS | MINUS) right=expr                                        # arithmetic
+    | left=expr op=(ADD | SUBTRACT) right=expr                                      # arithmetic
     | left=expr op=(LESS | LESS_EQ | EQ) right=expr                                 # comparison
     | NOT expr                                                                      # negate
     | ID ASSIGN expr                                                                # varAssign
 
     | IF cond=expr THEN thenBranch=expr ELSE elseBranch=expr FI                     # if
     | WHILE cond=expr LOOP body=expr POOL                                           # while
-    | LCURLY (body+=expr SEMICOLON)+ RCURLY                                         # block
     | LET vars+=local (COMMA vars+=local)* IN body=expr                             # let
-    | CASE ID OF case_branch+ ESAC                                                  # case
+    | CASE expr OF case_branch+ ESAC                                                # case
+    | LCURLY (body+=expr SEMICOLON)+ RCURLY                                         # block
     | NEW TYPE                                                                      # instantiation
     | LPAREN expr RPAREN                                                            # expression
     | ID                                                                            # var

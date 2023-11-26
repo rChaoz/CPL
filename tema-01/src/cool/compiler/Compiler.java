@@ -23,7 +23,7 @@ public class Compiler {
         CoolLexer lexer = null;
         CommonTokenStream tokenStream = null;
         CoolParser parser = null;
-        ParserRuleContext globalTree = null;
+        CoolParser.ProgramContext globalTree = null;
         
         // True if any lexical or syntax errors occur.
         boolean lexicalSyntaxErrors = false;
@@ -122,6 +122,6 @@ public class Compiler {
         }
         
         // Print tree
-        new CoolVisitor().visit(globalTree);
+        new CoolVisitor().visitProgram(globalTree).printTree();
     }
 }

@@ -148,19 +148,19 @@ public interface CoolParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitLiteralInteger(CoolParser.LiteralIntegerContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code block}
-	 * labeled alternative in {@link CoolParser#expr}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitBlock(CoolParser.BlockContext ctx);
-	/**
 	 * Visit a parse tree produced by the {@code let}
 	 * labeled alternative in {@link CoolParser#expr}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitLet(CoolParser.LetContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code block}
+	 * labeled alternative in {@link CoolParser#expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBlock(CoolParser.BlockContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code selfMethodCall}
 	 * labeled alternative in {@link CoolParser#expr}.

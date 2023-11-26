@@ -240,18 +240,6 @@ public interface CoolParserListener extends ParseTreeListener {
 	 */
 	void exitLiteralInteger(CoolParser.LiteralIntegerContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code block}
-	 * labeled alternative in {@link CoolParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterBlock(CoolParser.BlockContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code block}
-	 * labeled alternative in {@link CoolParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitBlock(CoolParser.BlockContext ctx);
-	/**
 	 * Enter a parse tree produced by the {@code let}
 	 * labeled alternative in {@link CoolParser#expr}.
 	 * @param ctx the parse tree
@@ -263,6 +251,18 @@ public interface CoolParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitLet(CoolParser.LetContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code block}
+	 * labeled alternative in {@link CoolParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterBlock(CoolParser.BlockContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code block}
+	 * labeled alternative in {@link CoolParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitBlock(CoolParser.BlockContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code selfMethodCall}
 	 * labeled alternative in {@link CoolParser#expr}.
