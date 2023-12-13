@@ -3,6 +3,7 @@ package cool.compiler;
 import cool.compiler.ast.Program;
 import cool.lexer.CoolLexer;
 import cool.parser.CoolParser;
+import cool.structures.ClassSymbol;
 import cool.structures.SymbolTable;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
@@ -127,11 +128,44 @@ public class Compiler {
 
         // Create AST
         Program program = new CoolVisitor().visitProgram(globalTree);
+        // Create class symbols
+        for (var cls : program.getClasses()) {
+            if (cls.getName().equals("SELF_TYPE"))
+                SymbolTable.error(cls, "Class " + cls.getName() + " has illegal name SELF_TYPE");
+            else if (!SymbolTable.defineClass(cls.getName()))
+                SymbolTable.error(cls, "Class " + cls.getName() + " is redefined");
+        }
+        // Set parents
+        for (var cls : program.getClasses()) {
+            if (cls.getParent() == null) continue;
+            ClassSymbol parentSymbol = SymbolTable.lookupClass(cls.getParent());
+            if (parentSymbol == null)
+                SymbolTable.error(cls, "Class " + cls.getName() + " has undefined parent " + cls.getParent());
+            else switch (cls.getParent()) {
+                case "Int":
+                case "String":
+                case "Bool":
+                case "SELF_TYPE":
+                    SymbolTable.error(cls, "Class " + cls.getParent() + " has illegal parent " + cls.getParent());
+                default:
+                    ClassSymbol classSymbol = SymbolTable.lookupClass(cls.getName());
+                    if (classSymbol != null) classSymbol.setParent(parentSymbol);
+            }
+        }
+        // Check for inheritance cycles
+        for (var cls : program.getClasses()) {
+            ClassSymbol classSymbol = SymbolTable.lookupClass(cls.getName());
+            if (classSymbol == null) continue;
+            ClassSymbol parent = classSymbol.getParent();
+            while (parent != null) {
+                if (parent == classSymbol) {
+                    SymbolTable.error(cls, "Inheritance cycle for class " + cls.getName());
+                    break;
+                } else parent = parent.getParent();
+            }
+        }
 
-        // Populate global scope.
-        SymbolTable.defineBasicClasses();
-
-        // TODO Semantic analysis
+        // TODO Class bodies
 
         if (SymbolTable.hasSemanticErrors()) {
             System.err.println("Compilation halted");
