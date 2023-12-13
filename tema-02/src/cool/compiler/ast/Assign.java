@@ -1,13 +1,13 @@
 package cool.compiler.ast;
 
-import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.ParserRuleContext;
 
 public class Assign extends Expression {
     private final String id;
     private final Expression expression;
 
-    public Assign(Token token, String id, Expression expression) {
-        super(token);
+    public Assign(ParserRuleContext context, String id, Expression expression) {
+        super(context);
         this.id = id;
         this.expression = expression;
     }

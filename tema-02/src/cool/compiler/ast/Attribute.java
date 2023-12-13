@@ -1,12 +1,12 @@
 package cool.compiler.ast;
 
-import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.ParserRuleContext;
 
 public class Attribute extends Feature {
     private final Expression initializer;
 
-    public Attribute(Token token, String id, String type, Expression initializer) {
-        super(token, id, type);
+    public Attribute(ParserRuleContext context, String id, String type, Expression initializer) {
+        super(context, id, type);
         this.initializer = initializer;
     }
 

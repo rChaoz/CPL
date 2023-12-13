@@ -1,6 +1,6 @@
 package cool.compiler.ast;
 
-import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.ParserRuleContext;
 
 import java.util.List;
 
@@ -9,8 +9,8 @@ public class MethodCall extends Expression {
     private final String targetType, name;
     private final List<Expression> arguments;
 
-    public MethodCall(Token token, Expression targetObject, String targetType, String name, List<Expression> arguments) {
-        super(token);
+    public MethodCall(ParserRuleContext context, Expression targetObject, String targetType, String name, List<Expression> arguments) {
+        super(context);
         this.targetObject = targetObject;
         this.targetType = targetType;
         this.name = name;

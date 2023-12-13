@@ -1,13 +1,13 @@
 package cool.compiler.ast;
 
-import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.ParserRuleContext;
 
 public class LetLocal extends ASTNode {
     private final String id, type;
     private final Expression initializer;
 
-    public LetLocal(Token token, String id, String type, Expression initializer) {
-        super(token);
+    public LetLocal(ParserRuleContext context, String id, String type, Expression initializer) {
+        super(context);
         this.id = id;
         this.type = type;
         this.initializer = initializer;

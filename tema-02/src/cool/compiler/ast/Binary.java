@@ -1,6 +1,6 @@
 package cool.compiler.ast;
 
-import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.ParserRuleContext;
 
 import java.util.Arrays;
 import java.util.NoSuchElementException;
@@ -28,8 +28,8 @@ public class Binary extends Expression {
     private final Operation operation;
     private final Expression left, right;
 
-    public Binary(Token token, Operation operation, Expression left, Expression right) {
-        super(token);
+    public Binary(ParserRuleContext context, Operation operation, Expression left, Expression right) {
+        super(context);
         this.operation = operation;
         this.left = left;
         this.right = right;

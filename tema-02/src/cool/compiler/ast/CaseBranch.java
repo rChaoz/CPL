@@ -1,13 +1,13 @@
 package cool.compiler.ast;
 
-import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.ParserRuleContext;
 
 public class CaseBranch extends ASTNode {
     private final String id, type;
     private final Expression body;
 
-    public CaseBranch(Token token, String id, String type, Expression body) {
-        super(token);
+    public CaseBranch(ParserRuleContext context, String id, String type, Expression body) {
+        super(context);
         this.id = id;
         this.type = type;
         this.body = body;

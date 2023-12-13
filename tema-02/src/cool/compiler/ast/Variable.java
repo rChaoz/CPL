@@ -1,12 +1,12 @@
 package cool.compiler.ast;
 
-import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.ParserRuleContext;
 
 public class Variable extends Expression {
     private final String id;
 
-    public Variable(Token token, String id) {
-        super(token);
+    public Variable(ParserRuleContext context, String id) {
+        super(context);
         this.id = id;
     }
 

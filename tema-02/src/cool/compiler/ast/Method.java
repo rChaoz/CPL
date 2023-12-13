@@ -1,6 +1,6 @@
 package cool.compiler.ast;
 
-import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.ParserRuleContext;
 
 import java.util.List;
 
@@ -8,8 +8,8 @@ public class Method extends Feature {
     private final List<Formal> formals;
     private final Expression body;
 
-    public Method(Token token, String id, String type, List<Formal> formals, Expression body) {
-        super(token, id, type);
+    public Method(ParserRuleContext context, String id, String type, List<Formal> formals, Expression body) {
+        super(context, id, type);
         this.formals = formals;
         this.body = body;
     }

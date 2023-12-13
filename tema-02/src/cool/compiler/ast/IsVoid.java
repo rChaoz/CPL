@@ -1,12 +1,12 @@
 package cool.compiler.ast;
 
-import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.ParserRuleContext;
 
 public class IsVoid extends Expression {
     private final Expression target;
 
-    public IsVoid(Token token, Expression target) {
-        super(token);
+    public IsVoid(ParserRuleContext context, Expression target) {
+        super(context);
         this.target = target;
     }
 

@@ -1,6 +1,6 @@
 package cool.compiler.ast;
 
-import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.ParserRuleContext;
 
 public class Literal extends Expression {
     public enum Type {
@@ -10,8 +10,8 @@ public class Literal extends Expression {
     private final Type type;
     private final String content;
 
-    public Literal(Token token, Type type, String content) {
-        super(token);
+    public Literal(ParserRuleContext context, Type type, String content) {
+        super(context);
         this.type = type;
         this.content = content;
     }

@@ -1,12 +1,12 @@
 package cool.compiler.ast;
 
-import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.ParserRuleContext;
 
 public class While extends Expression {
     private final Expression condition, body;
 
-    public While(Token token, Expression condition, Expression body) {
-        super(token);
+    public While(ParserRuleContext context, Expression condition, Expression body) {
+        super(context);
         this.condition = condition;
         this.body = body;
     }

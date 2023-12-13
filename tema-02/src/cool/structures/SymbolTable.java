@@ -1,6 +1,7 @@
 package cool.structures;
 
 import cool.compiler.Compiler;
+import cool.compiler.ast.ASTNode;
 import cool.parser.CoolParser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
@@ -8,13 +9,12 @@ import org.antlr.v4.runtime.Token;
 import java.io.File;
 
 public class SymbolTable {
-    public static Scope<ClassSymbol> globals;
+    private static final Scope<ClassSymbol> globals = new DefaultScope<>(null);
 
     private static boolean semanticErrors;
     static final ClassSymbol objectSymbol = new ClassSymbol(null);
 
     public static void defineBasicClasses() {
-        globals = new DefaultScope<>(null);
         globals.add(objectSymbol);
         semanticErrors = false;
 
@@ -49,15 +49,25 @@ public class SymbolTable {
         methods.add(new MethodSymbol("substr", stringSymbol, new VariableSymbol("i", intSymbol), new VariableSymbol("l", intSymbol)));
     }
 
+    public static boolean defineClass(String name) {
+        return globals.add(new ClassSymbol(name));
+    }
+
+    public static ClassSymbol lookupClass(String name) {
+        return globals.lookup(name);
+    }
+
     /**
      * Displays a semantic error message.
      *
-     * @param ctx  Used to determine the enclosing class context of this error,
-     *             which knows the file name in which the class was defined.
-     * @param info Used for line and column information.
+     * @param node Used to determine the enclosing class context of this error,
+     *             which knows the file name in which the class was defined,
+     *             as well as for line and column information.
      * @param str  The error message.
      */
-    public static void error(ParserRuleContext ctx, Token info, String str) {
+    public static void error(ASTNode node, String str) {
+        ParserRuleContext ctx = node.getContext();
+        Token info = ctx.start;
         while (!(ctx.getParent() instanceof CoolParser.ProgramContext))
             ctx = ctx.getParent();
 

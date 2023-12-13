@@ -1,6 +1,6 @@
 package cool.compiler.ast;
 
-import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.ParserRuleContext;
 
 import java.util.Arrays;
 import java.util.NoSuchElementException;
@@ -27,8 +27,8 @@ public class Unary extends Expression {
     private final Operation operation;
     private final Expression target;
 
-    public Unary(Token token, Operation operation, Expression target) {
-        super(token);
+    public Unary(ParserRuleContext context, Operation operation, Expression target) {
+        super(context);
         this.operation = operation;
         this.target = target;
     }

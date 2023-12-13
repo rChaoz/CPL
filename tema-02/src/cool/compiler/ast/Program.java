@@ -1,14 +1,14 @@
 package cool.compiler.ast;
 
-import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.ParserRuleContext;
 
 import java.util.List;
 
 public class Program extends ASTNode {
     private final List<PClass> classes;
 
-    public Program(Token token, List<PClass> classes) {
-        super(token);
+    public Program(ParserRuleContext context, List<PClass> classes) {
+        super(context);
         this.classes = classes;
     }
 
@@ -20,5 +20,9 @@ public class Program extends ASTNode {
     @Override
     protected void printChildren() {
         print(classes);
+    }
+
+    public List<PClass> getClasses() {
+        return classes;
     }
 }

@@ -1,14 +1,14 @@
 package cool.compiler.ast;
 
-import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.ParserRuleContext;
 
 import java.util.List;
 
 public class Block extends Expression {
     private final List<Expression> expressions;
 
-    public Block(Token token, List<Expression> expressions) {
-        super(token);
+    public Block(ParserRuleContext context, List<Expression> expressions) {
+        super(context);
         this.expressions = expressions;
     }
 
