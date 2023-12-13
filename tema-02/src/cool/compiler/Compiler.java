@@ -122,9 +122,11 @@ public class Compiler {
             return;
         }
 
+        // Populate global scope
+        SymbolTable.defineBasicClasses();
+
         // Create AST
         Program program = new CoolVisitor().visitProgram(globalTree);
-
 
         // Populate global scope.
         SymbolTable.defineBasicClasses();

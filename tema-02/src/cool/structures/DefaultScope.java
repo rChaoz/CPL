@@ -3,18 +3,18 @@ package cool.structures;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class DefaultScope implements Scope {
+public class DefaultScope<T extends Symbol> implements Scope<T> {
 
-    private final Map<String, Symbol> symbols = new LinkedHashMap<>();
+    private final Map<String, T> symbols = new LinkedHashMap<>();
 
-    private final Scope parent;
+    private final Scope<T> parent;
 
-    public DefaultScope(Scope parent) {
+    public DefaultScope(Scope<T> parent) {
         this.parent = parent;
     }
 
     @Override
-    public boolean add(Symbol sym) {
+    public boolean add(T sym) {
         // Reject duplicates in the same scope.
         if (symbols.containsKey(sym.getName()))
             return false;
@@ -25,7 +25,7 @@ public class DefaultScope implements Scope {
     }
 
     @Override
-    public Symbol lookup(String name) {
+    public T lookup(String name) {
         var sym = symbols.get(name);
 
         if (sym != null)
@@ -38,7 +38,7 @@ public class DefaultScope implements Scope {
     }
 
     @Override
-    public Scope getParent() {
+    public Scope<T> getParent() {
         return parent;
     }
 
@@ -46,5 +46,4 @@ public class DefaultScope implements Scope {
     public String toString() {
         return symbols.values().toString();
     }
-
 }

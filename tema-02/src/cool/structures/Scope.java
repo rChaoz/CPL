@@ -1,9 +1,9 @@
 package cool.structures;
 
-public interface Scope {
-    public boolean add(Symbol sym);
+public interface Scope<T extends Symbol> {
+    public boolean add(T sym);
 
-    public Symbol lookup(String str);
+    public T lookup(String str);
 
-    public Scope getParent();
+    public Scope<T> getParent();
 }
