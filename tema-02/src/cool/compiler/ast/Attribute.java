@@ -17,6 +17,10 @@ public class Attribute extends Feature {
         return context;
     }
 
+    public Expression getInitializer() {
+        return initializer;
+    }
+
     @Override
     protected void printTitle() {
         print("attribute");

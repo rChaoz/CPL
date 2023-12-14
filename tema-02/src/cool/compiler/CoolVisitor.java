@@ -37,11 +37,7 @@ public class CoolVisitor extends CoolParserBaseVisitor<ASTNode> {
 
     @Override
     public PClass visitClass(CoolParser.ClassContext ctx) {
-        return new PClass(ctx, ctx.name.getText(), text(ctx.parent), ctx.feature().stream().map(c -> {
-            if (c instanceof CoolParser.AttributeContext) return visitAttribute((CoolParser.AttributeContext) c);
-            else if (c instanceof CoolParser.MethodContext) return visitMethod((CoolParser.MethodContext) c);
-            else throw new RuntimeException("Unknown Feature context type: " + c);
-        }).collect(Collectors.toList()));
+        return new PClass(ctx, ctx.name.getText(), text(ctx.parent), ctx.feature().stream().map(c -> (Feature) visit(c)).collect(Collectors.toList()));
     }
 
     @Override

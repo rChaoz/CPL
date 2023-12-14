@@ -7,7 +7,7 @@ public class DefaultScope<T extends Symbol> implements Scope<T> {
 
     private final Map<String, T> symbols = new LinkedHashMap<>();
 
-    private final Scope<T> parent;
+    private Scope<T> parent;
 
     public DefaultScope(Scope<T> parent) {
         this.parent = parent;
@@ -26,12 +26,17 @@ public class DefaultScope<T extends Symbol> implements Scope<T> {
 
     @Override
     public T lookup(String name) {
+        return lookup(name, true);
+    }
+
+    @Override
+    public T lookup(String name, boolean recursive) {
         var sym = symbols.get(name);
 
         if (sym != null)
             return sym;
 
-        if (parent != null)
+        if (recursive && parent != null)
             return parent.lookup(name);
 
         return null;
@@ -40,6 +45,10 @@ public class DefaultScope<T extends Symbol> implements Scope<T> {
     @Override
     public Scope<T> getParent() {
         return parent;
+    }
+
+    public void setParent(Scope<T> parent) {
+        this.parent = parent;
     }
 
     @Override

@@ -28,5 +28,21 @@ public class ClassSymbol extends Symbol {
 
     public void setParent(ClassSymbol parent) {
         this.parent = parent;
+        if (parent != null) {
+            attributeScope.setParent(parent.getAttributeScope());
+            methodScope.setParent(parent.getMethodScope());
+        } else {
+            attributeScope.setParent(null);
+            methodScope.setParent(null);
+        }
+    }
+
+    public boolean isSupertypeOf(ClassSymbol cls) {
+        ClassSymbol c = this;
+        while (c != null) {
+            if (c == cls) return true;
+            c = c.parent;
+        }
+        return false;
     }
 }

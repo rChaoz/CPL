@@ -12,7 +12,7 @@ public class SymbolTable {
     private static final Scope<ClassSymbol> globals = new DefaultScope<>(null);
 
     private static boolean semanticErrors;
-    static final ClassSymbol objectSymbol = new ClassSymbol(null);
+    static final ClassSymbol objectSymbol = new ClassSymbol("Object", null);
 
     public static void defineBasicClasses() {
         globals.add(objectSymbol);

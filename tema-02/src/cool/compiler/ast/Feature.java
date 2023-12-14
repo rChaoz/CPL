@@ -7,4 +7,12 @@ public abstract class Feature extends ASTNode {
         this.id = id;
         this.type = type;
     }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getType() {
+        return type;
+    }
 }

@@ -18,6 +18,14 @@ public class Formal extends ASTNode {
         return context;
     }
 
+    public String getId() {
+        return id;
+    }
+
+    public String getType() {
+        return type;
+    }
+
     @Override
     protected void printTitle() {
         print("formal");

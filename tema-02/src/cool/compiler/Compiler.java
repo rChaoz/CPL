@@ -1,15 +1,22 @@
 package cool.compiler;
 
+import cool.compiler.ast.PClass;
 import cool.compiler.ast.Program;
 import cool.lexer.CoolLexer;
 import cool.parser.CoolParser;
 import cool.structures.ClassSymbol;
+import cool.structures.MethodSymbol;
 import cool.structures.SymbolTable;
+import cool.structures.VariableSymbol;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 
 public class Compiler {
@@ -132,8 +139,8 @@ public class Compiler {
         for (var cls : program.getClasses()) {
             if (cls.getName().equals("SELF_TYPE"))
                 SymbolTable.error(cls, cls.getContext().name, "Class has illegal name SELF_TYPE");
-            else if (!SymbolTable.defineClass(cls.getName()))
-                SymbolTable.error(cls, cls.getContext().name, "Class " + cls.getName() + " is redefined");
+            if (!SymbolTable.defineClass(cls.getName()))
+                SymbolTable.error(cls, cls.getContext().name, "Class %s is redefined".formatted(cls.getName()));
         }
         // Set parents
 
@@ -142,17 +149,15 @@ public class Compiler {
             String parent = cls.getParent();
             if (parent == null) continue;
             if (parent.equals("Int") || parent.equals("String") || parent.equals("Bool") || parent.equals("SELF_TYPE")) {
-                SymbolTable.error(cls, cls.getContext().parent, "Class " + cls.getName() + " has illegal parent " + parent);
+                SymbolTable.error(cls, cls.getContext().parent, "Class %s has illegal parent %s".formatted(cls.getName(), parent));
                 continue;
             }
             // Ensure parent exists
             ClassSymbol parentSymbol = SymbolTable.lookupClass(parent);
             if (parentSymbol == null)
-                SymbolTable.error(cls, cls.getContext().parent, "Class " + cls.getName() + " has undefined parent " + parent);
-            // Set the parent on the class
-            ClassSymbol classSymbol = SymbolTable.lookupClass(cls.getName());
-            if (classSymbol != null)
-                classSymbol.setParent(parentSymbol);
+                SymbolTable.error(cls, cls.getContext().parent, "Class %s has undefined parent %s".formatted(cls.getName(), parent));
+                // Set the parent on the class
+            else SymbolTable.lookupClass(cls.getName()).setParent(parentSymbol);
         }
         // Check for inheritance cycles
         for (var cls : program.getClasses()) {
@@ -161,13 +166,123 @@ public class Compiler {
             ClassSymbol parent = classSymbol.getParent();
             while (parent != null) {
                 if (parent == classSymbol) {
-                    SymbolTable.error(cls, cls.getContext().name, "Inheritance cycle for class " + cls.getName());
+                    SymbolTable.error(cls, cls.getContext().name, "Inheritance cycle for class %s".formatted(cls.getName()));
                     break;
                 } else parent = parent.getParent();
             }
         }
 
-        // TODO Class bodies
+        if (SymbolTable.hasSemanticErrors()) {
+            System.err.println("Compilation halted");
+            return;
+        }
+
+        // Define attributes & methods and check names
+        List<PClass> classes = new LinkedList<>(program.getClasses());
+        // Start with basic classes marked as processed
+        Set<ClassSymbol> processedClasses = new HashSet<>();
+        processedClasses.add(SymbolTable.lookupClass("Object"));
+        processedClasses.add(SymbolTable.lookupClass("Int"));
+        processedClasses.add(SymbolTable.lookupClass("Bool"));
+        processedClasses.add(SymbolTable.lookupClass("String"));
+        processedClasses.add(SymbolTable.lookupClass("IO"));
+
+        // Go through classes in parent -> child order
+        while (!classes.isEmpty()) {
+            var it = classes.iterator();
+            while (it.hasNext()) {
+                var cls = it.next();
+                // Skip class if we haven't processed its parent yet
+                String c = cls.getName();
+                ClassSymbol classSymbol = SymbolTable.lookupClass(c);
+                ClassSymbol parent = SymbolTable.lookupClass(cls.getParent());
+                if (parent != null && !processedClasses.contains(parent)) continue;
+                it.remove();
+                processedClasses.add(classSymbol);
+
+                for (var attribute : cls.getAttributes()) {
+                    String a = attribute.getId();
+                    if (a.equals("self"))
+                        SymbolTable.error(attribute, attribute.getContext().start, "Class %s has attribute with illegal name self".formatted(c));
+                    else if (classSymbol.getAttributeScope().lookup(a, false) != null)
+                        SymbolTable.error(attribute, attribute.getContext().start, "Class " + c + " redefines attribute " + a);
+                    else if (classSymbol.getAttributeScope().getParent() != null && classSymbol.getAttributeScope().getParent().lookup(a) != null)
+                        SymbolTable.error(attribute, attribute.getContext().start, "Class %s redefines inherited attribute %s".formatted(c, a));
+                    else {
+                        ClassSymbol type = SymbolTable.lookupClass(attribute.getType());
+                        if (type == null)
+                            SymbolTable.error(attribute, attribute.getContext().TYPE().getSymbol(),
+                                    "Class " + c + " has attribute " + a + " with undefined type " + attribute.getType());
+                            // All checks passed
+                        else classSymbol.getAttributeScope().add(new VariableSymbol(a, type));
+                    }
+                }
+
+                for (var method : cls.getMethods()) {
+                    String m = method.getId();
+                    if (classSymbol.getMethodScope().lookup(m, false) != null) {
+                        SymbolTable.error(method, method.getContext().ID().getSymbol(), "Class %s redefined method %s".formatted(c, m));
+                        continue;
+                    }
+
+                    ClassSymbol returnType = SymbolTable.lookupClass(method.getType());
+                    if (returnType == null) {
+                        SymbolTable.error(method, method.getContext().TYPE().getSymbol(),
+                                "Class %s has method %s with undefined return type %s".formatted(c, m, method.getType()));
+                        continue;
+                    }
+
+                    MethodSymbol methodSymbol = new MethodSymbol(m, returnType);
+                    for (var formal : method.getFormals()) {
+                        if (formal.getId().equals("self"))
+                            SymbolTable.error(formal, formal.getContext().ID().getSymbol(),
+                                    "Method %s of class %s has formal parameter with illegal name self".formatted(m, c));
+                        else if (methodSymbol.getFormalScope().lookup(formal.getId(), false) != null)
+                            SymbolTable.error(formal, formal.getContext().ID().getSymbol(),
+                                    "Method %s of class %s redefined formal parameter %s".formatted(m, c, formal.getId()));
+                        else if (formal.getType().equals("SELF_TYPE"))
+                            SymbolTable.error(formal, formal.getContext().ID().getSymbol(),
+                                    "Method %s of class %s has formal parameter %s with illegal type SELF_TYPE".formatted(m, c, formal.getId()));
+                        else {
+                            ClassSymbol type = SymbolTable.lookupClass(formal.getType());
+                            if (type == null)
+                                SymbolTable.error(formal, formal.getContext().TYPE().getSymbol(),
+                                        "Method %s of class %s has formal parameter %s with undefined type %s"
+                                                .formatted(m, c, formal.getId(), formal.getType()));
+                                // All checks passed
+                            else methodSymbol.addFormal(new VariableSymbol(formal.getId(), type));
+                        }
+                    }
+                    if (methodSymbol.getFormals().size() != method.getFormals().size()) continue;
+
+                    MethodSymbol superMethod = classSymbol.getParent() == null ? null : classSymbol.getParent().getMethodScope().lookup(m);
+                    if (superMethod != null) {
+                        List<VariableSymbol> methodFormals = methodSymbol.getFormals();
+                        List<VariableSymbol> superFormals = superMethod.getFormals();
+
+                        if (superFormals.size() != methodFormals.size())
+                            SymbolTable.error(method, method.getContext().ID().getSymbol(),
+                                    "Class %s overrides method %s with different number of formal parameters".formatted(c, m));
+                        else for (int i = 0; i < methodFormals.size(); ++i) {
+                            var mf = methodFormals.get(i);
+                            var sf = superFormals.get(i);
+                            if (mf.getType() != sf.getType())
+                                SymbolTable.error(method.getFormals().get(i), method.getFormals().get(i).getContext().ID().getSymbol(),
+                                        "Class %s overrides method %s but changes type of formal parameter %s from %s to %s"
+                                                .formatted(c, m, mf.getName(), mf.getType().getName(), sf.getType().getName()));
+                        }
+
+                        if (returnType != superMethod.getReturnType())
+                            SymbolTable.error(method, method.getContext().TYPE().getSymbol(),
+                                    "Class %s overrides method %s but changes return type from %s to %s"
+                                            .formatted(c, m, returnType.getName(), superMethod.getReturnType().getName()));
+                    }
+
+                    // All checks passed
+                    classSymbol.getMethodScope().add(methodSymbol);
+                }
+            }
+        }
 
         if (SymbolTable.hasSemanticErrors()) {
             System.err.println("Compilation halted");

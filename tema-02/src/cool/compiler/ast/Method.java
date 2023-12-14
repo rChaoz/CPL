@@ -21,6 +21,14 @@ public class Method extends Feature {
         return context;
     }
 
+    public List<Formal> getFormals() {
+        return formals;
+    }
+
+    public Expression getBody() {
+        return body;
+    }
+
     @Override
     protected void printTitle() {
         print("method");

@@ -2,6 +2,7 @@ package cool.compiler.ast;
 
 import cool.parser.CoolParser;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PClass extends ASTNode {
@@ -9,12 +10,21 @@ public class PClass extends ASTNode {
     private final String name;
     private final String parent;
     private final List<Feature> features;
+    private final List<Attribute> attributes;
+    private final List<Method> methods;
 
     public PClass(CoolParser.ClassContext context, String name, String parent, List<Feature> features) {
         this.context = context;
         this.name = name;
         this.parent = parent;
         this.features = features;
+        this.attributes = new ArrayList<>();
+        this.methods = new ArrayList<>();
+        for (Feature f : features) {
+            if (f instanceof Attribute a) attributes.add(a);
+            else if (f instanceof Method m) methods.add(m);
+            else throw new RuntimeException("Unknown feature: " + f);
+        }
     }
 
     @Override
@@ -30,8 +40,12 @@ public class PClass extends ASTNode {
         return parent;
     }
 
-    public List<Feature> getFeatures() {
-        return features;
+    public List<Attribute> getAttributes() {
+        return attributes;
+    }
+
+    public List<Method> getMethods() {
+        return methods;
     }
 
     @Override
