@@ -1,6 +1,9 @@
-package cool.compiler.ast;
+package cool.compiler.ast.expression;
 
 import cool.parser.CoolParser;
+import cool.structures.ClassSymbol;
+import cool.structures.Scope;
+import cool.structures.VariableSymbol;
 
 import java.util.List;
 
@@ -29,5 +32,16 @@ public class SelfMethodCall extends Expression {
     protected void printChildren() {
         print(name);
         print(arguments);
+    }
+
+    @Override
+    public ClassSymbol getExpressionType(Scope<VariableSymbol> scope) {
+        var method = scope.getCurrentClass().getMethodScope().lookup(name);
+        return method == null ? null : method.getReturnType(scope);
+    }
+
+    @Override
+    public void checkTypes(Scope<VariableSymbol> scope) {
+        MethodCall.checkMethodCall(scope, scope.getCurrentClass(), name, arguments, this, context.ID().getSymbol());
     }
 }

@@ -6,11 +6,18 @@ import java.util.Map;
 public class DefaultScope<T extends Symbol> implements Scope<T> {
 
     private final Map<String, T> symbols = new LinkedHashMap<>();
-
     private Scope<T> parent;
+    private ClassSymbol currentClass;
+
+    public DefaultScope() {
+    }
 
     public DefaultScope(Scope<T> parent) {
-        this.parent = parent;
+        setParent(parent);
+    }
+
+    public DefaultScope(ClassSymbol currentClass) {
+        this.currentClass = currentClass;
     }
 
     @Override
@@ -49,6 +56,12 @@ public class DefaultScope<T extends Symbol> implements Scope<T> {
 
     public void setParent(Scope<T> parent) {
         this.parent = parent;
+        this.currentClass = parent != null ? parent.getCurrentClass() : null;
+    }
+
+    @Override
+    public ClassSymbol getCurrentClass() {
+        return currentClass;
     }
 
     @Override

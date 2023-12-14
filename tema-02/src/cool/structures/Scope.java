@@ -10,4 +10,6 @@ public interface Scope<T extends Symbol> {
     Scope<T> getParent();
 
     void setParent(Scope<T> parent);
+
+    ClassSymbol getCurrentClass();
 }

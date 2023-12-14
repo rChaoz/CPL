@@ -1,12 +1,15 @@
 package cool.structures;
 
+import java.util.List;
+
 public class ClassSymbol extends Symbol {
     private ClassSymbol parent;
-    private final Scope<VariableSymbol> attributeScope = new DefaultScope<>(null);
-    private final Scope<MethodSymbol> methodScope = new DefaultScope<>(null);
+    private final Scope<VariableSymbol> attributeScope = new DefaultScope<>(this);
+    private final Scope<MethodSymbol> methodScope = new DefaultScope<>(this);
 
     public ClassSymbol(String name) {
-        this(name, SymbolTable.objectSymbol);
+        this(name, SymbolTable.Object);
+        attributeScope.add(new VariableSymbol("self", this));
     }
 
     ClassSymbol(String name, ClassSymbol parent) {
@@ -37,12 +40,24 @@ public class ClassSymbol extends Symbol {
         }
     }
 
-    public boolean isSupertypeOf(ClassSymbol cls) {
-        ClassSymbol c = this;
+    public boolean isSuperTypeOf(ClassSymbol cls) {
+        ClassSymbol c = cls;
         while (c != null) {
-            if (c == cls) return true;
+            if (c == this) return true;
             c = c.parent;
         }
         return false;
+    }
+
+    public static ClassSymbol joinTypes(ClassSymbol first, ClassSymbol second) {
+        while (!first.isSuperTypeOf(second)) first = first.parent;
+        return first;
+    }
+
+    public static ClassSymbol joinTypes(List<ClassSymbol> classes) {
+        if (classes.isEmpty()) return SymbolTable.Object;
+        ClassSymbol type = classes.get(0);
+        for (int i = 1; i < classes.size(); ++i) type = joinTypes(type, classes.get(i));
+        return type;
     }
 }

@@ -1,6 +1,10 @@
-package cool.compiler.ast;
+package cool.compiler.ast.expression;
 
 import cool.parser.CoolParser;
+import cool.structures.ClassSymbol;
+import cool.structures.Scope;
+import cool.structures.SymbolTable;
+import cool.structures.VariableSymbol;
 import org.antlr.v4.runtime.ParserRuleContext;
 
 import java.util.Arrays;
@@ -51,5 +55,18 @@ public class Arithmetic extends Expression {
     protected void printChildren() {
         print(left);
         print(right);
+    }
+
+    @Override
+    public ClassSymbol getExpressionType(Scope<VariableSymbol> scope) {
+        return SymbolTable.Int;
+    }
+
+    @Override
+    public void checkTypes(Scope<VariableSymbol> scope) {
+        ensureOperandInt(scope, left, operation.symbol, context.left.start);
+        ensureOperandInt(scope, right, operation.symbol, context.right.start);
+        left.checkTypes(scope);
+        right.checkTypes(scope);
     }
 }

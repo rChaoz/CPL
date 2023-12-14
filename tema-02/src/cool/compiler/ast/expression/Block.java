@@ -1,6 +1,9 @@
-package cool.compiler.ast;
+package cool.compiler.ast.expression;
 
 import cool.parser.CoolParser;
+import cool.structures.ClassSymbol;
+import cool.structures.Scope;
+import cool.structures.VariableSymbol;
 
 import java.util.List;
 
@@ -26,5 +29,15 @@ public class Block extends Expression {
     @Override
     protected void printChildren() {
         print(expressions);
+    }
+
+    @Override
+    public ClassSymbol getExpressionType(Scope<VariableSymbol> scope) {
+        return expressions.get(expressions.size() - 1).getExpressionType(scope);
+    }
+
+    @Override
+    public void checkTypes(Scope<VariableSymbol> scope) {
+        for (var expr : expressions) expr.checkTypes(scope);
     }
 }

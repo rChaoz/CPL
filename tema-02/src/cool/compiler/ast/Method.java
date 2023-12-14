@@ -1,5 +1,6 @@
 package cool.compiler.ast;
 
+import cool.compiler.ast.expression.Expression;
 import cool.parser.CoolParser;
 
 import java.util.List;

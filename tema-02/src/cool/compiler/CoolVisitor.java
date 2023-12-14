@@ -1,6 +1,7 @@
 package cool.compiler;
 
 import cool.compiler.ast.*;
+import cool.compiler.ast.expression.*;
 import cool.parser.CoolParser;
 import cool.parser.CoolParserBaseVisitor;
 import org.antlr.v4.runtime.ParserRuleContext;

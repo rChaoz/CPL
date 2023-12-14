@@ -1,6 +1,10 @@
-package cool.compiler.ast;
+package cool.compiler.ast.expression;
 
 import cool.parser.CoolParser;
+import cool.structures.ClassSymbol;
+import cool.structures.Scope;
+import cool.structures.SymbolTable;
+import cool.structures.VariableSymbol;
 
 public class While extends Expression {
     private final CoolParser.WhileContext context;
@@ -27,5 +31,17 @@ public class While extends Expression {
     protected void printChildren() {
         print(condition);
         print(body);
+    }
+
+    @Override
+    public ClassSymbol getExpressionType(Scope<VariableSymbol> scope) {
+        return SymbolTable.Object;
+    }
+
+    @Override
+    public void checkTypes(Scope<VariableSymbol> scope) {
+        ensureConditionBool(scope, condition, "While", context.cond.start);
+        condition.checkTypes(scope);
+        body.checkTypes(scope);
     }
 }

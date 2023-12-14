@@ -1,5 +1,9 @@
-package cool.compiler.ast;
+package cool.compiler.ast.expression;
 
+import cool.structures.ClassSymbol;
+import cool.structures.Scope;
+import cool.structures.SymbolTable;
+import cool.structures.VariableSymbol;
 import org.antlr.v4.runtime.ParserRuleContext;
 
 public class Literal extends Expression {
@@ -33,5 +37,18 @@ public class Literal extends Expression {
 
     @Override
     protected void printChildren() {
+    }
+
+    @Override
+    public ClassSymbol getExpressionType(Scope<VariableSymbol> scope) {
+        return switch (type) {
+            case INTEGER -> SymbolTable.Int;
+            case STRING -> SymbolTable.String;
+            case BOOLEAN -> SymbolTable.Bool;
+        };
+    }
+
+    @Override
+    public void checkTypes(Scope<VariableSymbol> scope) {
     }
 }

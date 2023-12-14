@@ -9,44 +9,42 @@ import org.antlr.v4.runtime.Token;
 import java.io.File;
 
 public class SymbolTable {
-    private static final Scope<ClassSymbol> globals = new DefaultScope<>(null);
+    private static final Scope<ClassSymbol> globals = new DefaultScope<>();
 
-    private static boolean semanticErrors;
-    static final ClassSymbol objectSymbol = new ClassSymbol("Object", null);
+    private static boolean semanticErrors = false;
+
+    public static final ClassSymbol Object = new ClassSymbol("Object", null);
+    public static final ClassSymbol IO = new ClassSymbol("IO");
+    public static final ClassSymbol Int = new ClassSymbol("Int");
+    public static final ClassSymbol String = new ClassSymbol("String");
+    public static final ClassSymbol Bool = new ClassSymbol("Bool");
 
     public static void defineBasicClasses() {
-        globals.add(objectSymbol);
-        semanticErrors = false;
-
         // Populate global scope
-
-        ClassSymbol ioSymbol = new ClassSymbol("IO");
-        ClassSymbol intSymbol = new ClassSymbol("Int");
-        ClassSymbol stringSymbol = new ClassSymbol("String");
-        ClassSymbol boolSymbol = new ClassSymbol("Bool");
-        globals.add(ioSymbol);
-        globals.add(intSymbol);
-        globals.add(stringSymbol);
-        globals.add(boolSymbol);
+        globals.add(Object);
+        globals.add(IO);
+        globals.add(Int);
+        globals.add(String);
+        globals.add(Bool);
 
         // Object: Define methods
-        var methods = objectSymbol.getMethodScope();
-        methods.add(new MethodSymbol("abort", objectSymbol));
-        methods.add(new MethodSymbol("type_name", stringSymbol));
-        methods.add(new MethodSymbol("copy", null));
+        var methods = Object.getMethodScope();
+        methods.add(new MethodSymbol("abort", Object, Object));
+        methods.add(new MethodSymbol("type_name", Object, String));
+        methods.add(new MethodSymbol("copy", Object, null));
 
         // IO: Define methods
-        methods = ioSymbol.getMethodScope();
-        methods.add(new MethodSymbol("out_string", null, new VariableSymbol("x", stringSymbol)));
-        methods.add(new MethodSymbol("out_int", null, new VariableSymbol("x", intSymbol)));
-        methods.add(new MethodSymbol("in_string", stringSymbol));
-        methods.add(new MethodSymbol("in_int", intSymbol));
+        methods = IO.getMethodScope();
+        methods.add(new MethodSymbol("out_string", IO, null, new VariableSymbol("x", String)));
+        methods.add(new MethodSymbol("out_int", IO, null, new VariableSymbol("x", Int)));
+        methods.add(new MethodSymbol("in_string", IO, String));
+        methods.add(new MethodSymbol("in_int", IO, Int));
 
         // String: Define methods
-        methods = stringSymbol.getMethodScope();
-        methods.add(new MethodSymbol("length", intSymbol));
-        methods.add(new MethodSymbol("concat", stringSymbol, new VariableSymbol("s", stringSymbol)));
-        methods.add(new MethodSymbol("substr", stringSymbol, new VariableSymbol("i", intSymbol), new VariableSymbol("l", intSymbol)));
+        methods = String.getMethodScope();
+        methods.add(new MethodSymbol("length", String, Int));
+        methods.add(new MethodSymbol("concat", String, String, new VariableSymbol("s", String)));
+        methods.add(new MethodSymbol("substr", String, String, new VariableSymbol("i", Int), new VariableSymbol("l", Int)));
     }
 
     public static boolean defineClass(String name) {

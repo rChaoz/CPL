@@ -1,6 +1,9 @@
-package cool.compiler.ast;
+package cool.compiler.ast.expression;
 
 import cool.parser.CoolParser;
+import cool.structures.ClassSymbol;
+import cool.structures.Scope;
+import cool.structures.VariableSymbol;
 
 public class If extends Expression {
     private final CoolParser.IfContext context;
@@ -30,5 +33,21 @@ public class If extends Expression {
         print(condition);
         print(thenBranch);
         print(elseBranch);
+    }
+
+    @Override
+    public ClassSymbol getExpressionType(Scope<VariableSymbol> scope) {
+        var thenType = thenBranch.getExpressionType(scope);
+        var elseType = elseBranch.getExpressionType(scope);
+        if (thenType == null || elseType == null) return null;
+        return ClassSymbol.joinTypes(thenType, elseType);
+    }
+
+    @Override
+    public void checkTypes(Scope<VariableSymbol> scope) {
+        ensureConditionBool(scope, condition, "If", context.cond.start);
+        condition.checkTypes(scope);
+        thenBranch.checkTypes(scope);
+        elseBranch.checkTypes(scope);
     }
 }
