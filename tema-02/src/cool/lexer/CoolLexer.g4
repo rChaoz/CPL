@@ -91,17 +91,17 @@ CASE_ARROW : '=>' ;
 ASSIGN : '<-' ;
 SEMICOLON : ';' ;
 
+// Literals
+INTEGER : [0-9]+ ;
+TRUE : 't' R U E ;
+FALSE : 'f' A L S E ;
+
 // Types and IDs
 TYPE : [A-Z][a-zA-Z0-9_]* ; // this includes 'SELF_TYPE'
 ID : [a-z][a-zA-Z0-9_]* ;   // this includes 'self'
 
 // Whitespace
 WS : [ \n\f\r\t]+ -> skip;
-
-// Literals
-INTEGER : [0-9]+ ;
-TRUE : 't' R U E ;
-FALSE : 'f' A L S E ;
 
 // Comments
 LINE_COMMENT : '--' ~[\r\n]* -> skip;
