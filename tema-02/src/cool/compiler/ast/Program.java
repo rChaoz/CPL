@@ -1,15 +1,25 @@
 package cool.compiler.ast;
 
-import org.antlr.v4.runtime.ParserRuleContext;
+import cool.parser.CoolParser;
 
 import java.util.List;
 
 public class Program extends ASTNode {
+    private final CoolParser.ProgramContext context;
     private final List<PClass> classes;
 
-    public Program(ParserRuleContext context, List<PClass> classes) {
-        super(context);
+    public Program(CoolParser.ProgramContext context, List<PClass> classes) {
+        this.context = context;
         this.classes = classes;
+    }
+
+    @Override
+    public CoolParser.ProgramContext getContext() {
+        return context;
+    }
+
+    public List<PClass> getClasses() {
+        return classes;
     }
 
     @Override
@@ -20,9 +30,5 @@ public class Program extends ASTNode {
     @Override
     protected void printChildren() {
         print(classes);
-    }
-
-    public List<PClass> getClasses() {
-        return classes;
     }
 }

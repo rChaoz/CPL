@@ -2,23 +2,23 @@ package cool.compiler.ast;
 
 import cool.parser.CoolParser;
 
-public class IsVoid extends Expression {
-    private final CoolParser.IsvoidContext context;
+public class Complement extends Expression {
+    private final CoolParser.UnaryContext context;
     private final Expression target;
 
-    public IsVoid(CoolParser.IsvoidContext context, Expression target) {
+    public Complement(CoolParser.UnaryContext context, Expression target) {
         this.context = context;
         this.target = target;
     }
 
     @Override
-    public CoolParser.IsvoidContext getContext() {
+    public CoolParser.UnaryContext getContext() {
         return context;
     }
 
     @Override
     protected void printTitle() {
-        print("isvoid");
+        print("~");
     }
 
     @Override

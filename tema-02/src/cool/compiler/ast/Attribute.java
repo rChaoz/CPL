@@ -1,13 +1,20 @@
 package cool.compiler.ast;
 
-import org.antlr.v4.runtime.ParserRuleContext;
+import cool.parser.CoolParser;
 
 public class Attribute extends Feature {
+    private final CoolParser.AttributeContext context;
     private final Expression initializer;
 
-    public Attribute(ParserRuleContext context, String id, String type, Expression initializer) {
-        super(context, id, type);
+    public Attribute(CoolParser.AttributeContext context, String id, String type, Expression initializer) {
+        super(id, type);
+        this.context = context;
         this.initializer = initializer;
+    }
+
+    @Override
+    public CoolParser.AttributeContext getContext() {
+        return context;
     }
 
     @Override

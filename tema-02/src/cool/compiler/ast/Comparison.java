@@ -1,38 +1,44 @@
 package cool.compiler.ast;
 
-import org.antlr.v4.runtime.ParserRuleContext;
+import cool.parser.CoolParser;
 
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 
-public class Binary extends Expression {
-    public enum Operation {
-        ADD("+"), SUBTRACT("-"), MULTIPLY("*"), DIVIDE("/"),
+public class Comparison extends Expression {
+    public enum Op {
         LESS("<"), LESS_OR_EQUAL("<="), EQUAL("=");
 
         private final String symbol;
 
-        Operation(String symbol) {
+        Op(String symbol) {
             this.symbol = symbol;
         }
 
         /**
-         * @throws NoSuchElementException If no Operation with given symbol exists
+         * @throws NoSuchElementException If no Op with given symbol exists
          */
         @SuppressWarnings("OptionalGetWithoutIsPresent")
-        public static Operation findBySymbol(String symbol) {
+        public static Op findBySymbol(String symbol) {
             return Arrays.stream(values()).filter(op -> op.symbol.equals(symbol)).findFirst().get();
         }
     }
 
-    private final Operation operation;
+    private final CoolParser.ComparisonContext context;
+    private final Op operation;
+
     private final Expression left, right;
 
-    public Binary(ParserRuleContext context, Operation operation, Expression left, Expression right) {
-        super(context);
+    public Comparison(CoolParser.ComparisonContext context, Op operation, Expression left, Expression right) {
+        this.context = context;
         this.operation = operation;
         this.left = left;
         this.right = right;
+    }
+
+    @Override
+    public CoolParser.ComparisonContext getContext() {
+        return context;
     }
 
     @Override

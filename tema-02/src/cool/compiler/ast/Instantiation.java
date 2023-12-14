@@ -1,13 +1,19 @@
 package cool.compiler.ast;
 
-import org.antlr.v4.runtime.ParserRuleContext;
+import cool.parser.CoolParser;
 
 public class Instantiation extends Expression {
+    private final CoolParser.InstantiationContext context;
     private final String type;
 
-    public Instantiation(ParserRuleContext context, String type) {
-        super(context);
+    public Instantiation(CoolParser.InstantiationContext context, String type) {
+        this.context = context;
         this.type = type;
+    }
+
+    @Override
+    public CoolParser.InstantiationContext getContext() {
+        return context;
     }
 
     @Override

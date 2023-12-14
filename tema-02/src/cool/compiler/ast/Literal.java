@@ -7,13 +7,23 @@ public class Literal extends Expression {
         INTEGER, STRING, BOOLEAN
     }
 
+    private final ParserRuleContext context;
     private final Type type;
     private final String content;
 
     public Literal(ParserRuleContext context, Type type, String content) {
-        super(context);
+        this.context = context;
         this.type = type;
         this.content = content;
+    }
+
+    @Override
+    public ParserRuleContext getContext() {
+        return context;
+    }
+
+    public Type getType() {
+        return type;
     }
 
     @Override

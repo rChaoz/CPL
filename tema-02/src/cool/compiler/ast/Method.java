@@ -1,17 +1,24 @@
 package cool.compiler.ast;
 
-import org.antlr.v4.runtime.ParserRuleContext;
+import cool.parser.CoolParser;
 
 import java.util.List;
 
 public class Method extends Feature {
+    private final CoolParser.MethodContext context;
     private final List<Formal> formals;
     private final Expression body;
 
-    public Method(ParserRuleContext context, String id, String type, List<Formal> formals, Expression body) {
-        super(context, id, type);
+    public Method(CoolParser.MethodContext context, String id, String type, List<Formal> formals, Expression body) {
+        super(id, type);
+        this.context = context;
         this.formals = formals;
         this.body = body;
+    }
+
+    @Override
+    public CoolParser.MethodContext getContext() {
+        return context;
     }
 
     @Override

@@ -65,9 +65,8 @@ public class SymbolTable {
      *             as well as for line and column information.
      * @param str  The error message.
      */
-    public static void error(ASTNode node, String str) {
+    public static void error(ASTNode node, Token info, String str) {
         ParserRuleContext ctx = node.getContext();
-        Token info = ctx.start;
         while (!(ctx.getParent() instanceof CoolParser.ProgramContext))
             ctx = ctx.getParent();
 

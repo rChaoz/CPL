@@ -1,16 +1,23 @@
 package cool.compiler.ast;
 
-import org.antlr.v4.runtime.ParserRuleContext;
+import cool.parser.CoolParser;
 
 public class LetLocal extends ASTNode {
-    private final String id, type;
+    private final CoolParser.LocalContext context;
+    private final String id;
+    private final String type;
     private final Expression initializer;
 
-    public LetLocal(ParserRuleContext context, String id, String type, Expression initializer) {
-        super(context);
+    public LetLocal(CoolParser.LocalContext context, String id, String type, Expression initializer) {
+        this.context = context;
         this.id = id;
         this.type = type;
         this.initializer = initializer;
+    }
+
+    @Override
+    public CoolParser.LocalContext getContext() {
+        return context;
     }
 
     @Override

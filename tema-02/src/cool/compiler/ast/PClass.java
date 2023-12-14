@@ -1,30 +1,25 @@
 package cool.compiler.ast;
 
-import org.antlr.v4.runtime.ParserRuleContext;
+import cool.parser.CoolParser;
 
 import java.util.List;
 
 public class PClass extends ASTNode {
-    private final String name, parent;
+    private final CoolParser.ClassContext context;
+    private final String name;
+    private final String parent;
     private final List<Feature> features;
 
-    public PClass(ParserRuleContext context, String name, String parent, List<Feature> features) {
-        super(context);
+    public PClass(CoolParser.ClassContext context, String name, String parent, List<Feature> features) {
+        this.context = context;
         this.name = name;
         this.parent = parent;
         this.features = features;
     }
 
     @Override
-    protected void printTitle() {
-        print("class");
-    }
-
-    @Override
-    protected void printChildren() {
-        print(name);
-        if (parent != null) print(parent);
-        print(features);
+    public CoolParser.ClassContext getContext() {
+        return context;
     }
 
     public String getName() {
@@ -37,5 +32,17 @@ public class PClass extends ASTNode {
 
     public List<Feature> getFeatures() {
         return features;
+    }
+
+    @Override
+    protected void printTitle() {
+        print("class");
+    }
+
+    @Override
+    protected void printChildren() {
+        print(name);
+        if (parent != null) print(parent);
+        print(features);
     }
 }

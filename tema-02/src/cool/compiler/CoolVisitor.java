@@ -94,18 +94,18 @@ public class CoolVisitor extends CoolParserBaseVisitor<ASTNode> {
     // Arithmetic & comparison
 
     @Override
-    public Binary visitArithmetic(CoolParser.ArithmeticContext ctx) {
-        return new Binary(ctx, Binary.Operation.findBySymbol(ctx.op.getText()), visitExpr(ctx.left), visitExpr(ctx.right));
+    public Arithmetic visitArithmetic(CoolParser.ArithmeticContext ctx) {
+        return new Arithmetic(ctx, Arithmetic.Op.findBySymbol(ctx.op.getText()), visitExpr(ctx.left), visitExpr(ctx.right));
     }
 
     @Override
-    public Unary visitUnary(CoolParser.UnaryContext ctx) {
-        return new Unary(ctx, Unary.Operation.findBySymbol(ctx.op.getText()), visitExpr(ctx.expr()));
+    public Complement visitUnary(CoolParser.UnaryContext ctx) {
+        return new Complement(ctx, visitExpr(ctx.expr()));
     }
 
     @Override
-    public Binary visitComparison(CoolParser.ComparisonContext ctx) {
-        return new Binary(ctx, Binary.Operation.findBySymbol(ctx.op.getText()), visitExpr(ctx.left), visitExpr(ctx.right));
+    public Comparison visitComparison(CoolParser.ComparisonContext ctx) {
+        return new Comparison(ctx, Comparison.Op.findBySymbol(ctx.op.getText()), visitExpr(ctx.left), visitExpr(ctx.right));
     }
 
     // Variable stuff
@@ -150,8 +150,8 @@ public class CoolVisitor extends CoolParserBaseVisitor<ASTNode> {
     }
 
     @Override
-    public Unary visitNegate(CoolParser.NegateContext ctx) {
-        return new Unary(ctx, Unary.Operation.findBySymbol("not"), visitExpr(ctx.expr()));
+    public Negate visitNegate(CoolParser.NegateContext ctx) {
+        return new Negate(ctx, visitExpr(ctx.expr()));
     }
 
     @Override
@@ -167,8 +167,8 @@ public class CoolVisitor extends CoolParserBaseVisitor<ASTNode> {
     }
 
     @Override
-    public MethodCall visitSelfMethodCall(CoolParser.SelfMethodCallContext ctx) {
-        return new MethodCall(ctx, null, null, ctx.method.getText(), visitAll(ctx.args, this::visitExpr));
+    public SelfMethodCall visitSelfMethodCall(CoolParser.SelfMethodCallContext ctx) {
+        return new SelfMethodCall(ctx, ctx.method.getText(), visitAll(ctx.args, this::visitExpr));
     }
 
     @Override

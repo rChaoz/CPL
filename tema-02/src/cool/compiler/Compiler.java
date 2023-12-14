@@ -131,26 +131,28 @@ public class Compiler {
         // Create class symbols
         for (var cls : program.getClasses()) {
             if (cls.getName().equals("SELF_TYPE"))
-                SymbolTable.error(cls, "Class " + cls.getName() + " has illegal name SELF_TYPE");
+                SymbolTable.error(cls, cls.getContext().name, "Class has illegal name SELF_TYPE");
             else if (!SymbolTable.defineClass(cls.getName()))
-                SymbolTable.error(cls, "Class " + cls.getName() + " is redefined");
+                SymbolTable.error(cls, cls.getContext().name, "Class " + cls.getName() + " is redefined");
         }
         // Set parents
+
+
         for (var cls : program.getClasses()) {
-            if (cls.getParent() == null) continue;
-            ClassSymbol parentSymbol = SymbolTable.lookupClass(cls.getParent());
-            if (parentSymbol == null)
-                SymbolTable.error(cls, "Class " + cls.getName() + " has undefined parent " + cls.getParent());
-            else switch (cls.getParent()) {
-                case "Int":
-                case "String":
-                case "Bool":
-                case "SELF_TYPE":
-                    SymbolTable.error(cls, "Class " + cls.getParent() + " has illegal parent " + cls.getParent());
-                default:
-                    ClassSymbol classSymbol = SymbolTable.lookupClass(cls.getName());
-                    if (classSymbol != null) classSymbol.setParent(parentSymbol);
+            String parent = cls.getParent();
+            if (parent == null) continue;
+            if (parent.equals("Int") || parent.equals("String") || parent.equals("Bool") || parent.equals("SELF_TYPE")) {
+                SymbolTable.error(cls, cls.getContext().parent, "Class " + cls.getName() + " has illegal parent " + parent);
+                continue;
             }
+            // Ensure parent exists
+            ClassSymbol parentSymbol = SymbolTable.lookupClass(parent);
+            if (parentSymbol == null)
+                SymbolTable.error(cls, cls.getContext().parent, "Class " + cls.getName() + " has undefined parent " + parent);
+            // Set the parent on the class
+            ClassSymbol classSymbol = SymbolTable.lookupClass(cls.getName());
+            if (classSymbol != null)
+                classSymbol.setParent(parentSymbol);
         }
         // Check for inheritance cycles
         for (var cls : program.getClasses()) {
@@ -159,7 +161,7 @@ public class Compiler {
             ClassSymbol parent = classSymbol.getParent();
             while (parent != null) {
                 if (parent == classSymbol) {
-                    SymbolTable.error(cls, "Inheritance cycle for class " + cls.getName());
+                    SymbolTable.error(cls, cls.getContext().name, "Inheritance cycle for class " + cls.getName());
                     break;
                 } else parent = parent.getParent();
             }

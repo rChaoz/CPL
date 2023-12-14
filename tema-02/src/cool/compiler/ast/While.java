@@ -1,14 +1,21 @@
 package cool.compiler.ast;
 
-import org.antlr.v4.runtime.ParserRuleContext;
+import cool.parser.CoolParser;
 
 public class While extends Expression {
-    private final Expression condition, body;
+    private final CoolParser.WhileContext context;
+    private final Expression condition;
+    private final Expression body;
 
-    public While(ParserRuleContext context, Expression condition, Expression body) {
-        super(context);
+    public While(CoolParser.WhileContext context, Expression condition, Expression body) {
+        this.context = context;
         this.condition = condition;
         this.body = body;
+    }
+
+    @Override
+    public CoolParser.WhileContext getContext() {
+        return context;
     }
 
     @Override

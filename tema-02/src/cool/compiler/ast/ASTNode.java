@@ -5,15 +5,7 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import java.util.List;
 
 public abstract class ASTNode {
-    protected final ParserRuleContext context;
-
-    public ASTNode(ParserRuleContext context) {
-        this.context = context;
-    }
-
-    public ParserRuleContext getContext() {
-        return context;
-    }
+    public abstract ParserRuleContext getContext();
 
     // Printing stuff
     private int indent;

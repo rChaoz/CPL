@@ -1,13 +1,19 @@
 package cool.compiler.ast;
 
-import org.antlr.v4.runtime.ParserRuleContext;
+import cool.parser.CoolParser;
 
 public class Variable extends Expression {
+    private final CoolParser.VarContext context;
     private final String id;
 
-    public Variable(ParserRuleContext context, String id) {
-        super(context);
+    public Variable(CoolParser.VarContext context, String id) {
+        this.context = context;
         this.id = id;
+    }
+
+    @Override
+    public CoolParser.VarContext getContext() {
+        return context;
     }
 
     @Override
