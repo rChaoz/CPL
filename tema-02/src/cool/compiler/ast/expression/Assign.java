@@ -52,7 +52,7 @@ public class Assign extends Expression {
         }
         ClassSymbol type = expression.getExpressionType(scope);
         if (type != null && !var.getType(scope).isSuperTypeOf(type))
-            SymbolTable.error(this, context.start,
+            SymbolTable.error(this, context.expr().start,
                     "Type %s of assigned expression is incompatible with declared type %s of identifier %s"
                             .formatted(type.getName(), var.getTypeName(), id));
     }

@@ -64,9 +64,9 @@ public class Arithmetic extends Expression {
 
     @Override
     public void checkTypes(Scope<VariableSymbol> scope) {
+        left.checkTypes(scope);
         ensureOperandInt(scope, left, operation.symbol, context.left.start);
         ensureOperandInt(scope, right, operation.symbol, context.right.start);
-        left.checkTypes(scope);
         right.checkTypes(scope);
     }
 }

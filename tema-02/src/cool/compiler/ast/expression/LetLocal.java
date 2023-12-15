@@ -44,21 +44,23 @@ public class LetLocal extends ASTNode {
             return;
         }
 
-        ClassSymbol declaredType = type.equals("SELF_TYPE") ? scope.getCurrentClass() : SymbolTable.lookupClass(type);
+        ClassSymbol declaredType = SymbolTable.lookupClass(type);
 
-        if (!type.equals("SELF_TYPE")) {
+        if (declaredType == null && !type.equals("SELF_TYPE")) {
             SymbolTable.error(this, context.TYPE().getSymbol(),
                     "Let variable %s has undefined type %s".formatted(id, type));
             return;
         }
 
         if (initializer == null) return;
-
         initializer.checkTypes(scope);
 
         ClassSymbol expressionType = initializer.getExpressionType(scope);
+
+        // Nothing other than SELF_TYPE can be assigned to SELF_TYPE
+        // SELF_TYPE can be assigned to CurrentClass and all superclasses
         if (expressionType != null && !declaredType.isSuperTypeOf(expressionType))
-            SymbolTable.error(this, context.TYPE().getSymbol(),
+            SymbolTable.error(this, context.expr().start,
                     "Type %s of initialization expression of identifier %s is incompatible with declared type %s"
                             .formatted(expressionType.getName(), id, declaredType.getName()));
     }

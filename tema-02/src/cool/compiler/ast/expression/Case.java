@@ -3,7 +3,6 @@ package cool.compiler.ast.expression;
 import cool.parser.CoolParser;
 import cool.structures.ClassSymbol;
 import cool.structures.Scope;
-import cool.structures.SymbolTable;
 import cool.structures.VariableSymbol;
 
 import java.util.ArrayList;
@@ -41,8 +40,7 @@ public class Case extends Expression {
         var branchTypes = new ArrayList<ClassSymbol>(branches.size());
         for (var branch : branches) {
             if (branch.getId().equals("self")) continue;
-            ClassSymbol type = SymbolTable.lookupClass(branch.getType());
-            if (type != null) branchTypes.add(type);
+            branchTypes.add(branch.getBody().getExpressionType(scope));
         }
         return ClassSymbol.joinTypes(branchTypes);
     }

@@ -63,6 +63,7 @@ public class Comparison extends Expression {
 
     @Override
     public void checkTypes(Scope<VariableSymbol> scope) {
+        left.checkTypes(scope);
         if (operation != Op.EQUAL) {
             ensureOperandInt(scope, left, operation.symbol, context.left.start);
             ensureOperandInt(scope, right, operation.symbol, context.right.start);
@@ -71,10 +72,9 @@ public class Comparison extends Expression {
             if (leftType != null && rightType != null && leftType != rightType &&
                     (leftType == SymbolTable.Int || leftType == SymbolTable.Bool || leftType == SymbolTable.String ||
                     rightType == SymbolTable.Int || rightType == SymbolTable.Bool || rightType == SymbolTable.String)) {
-                SymbolTable.error(this, context.start, "Cannot compare %s with %s".formatted(leftType.getName(), rightType.getName()));
+                SymbolTable.error(this, context.op, "Cannot compare %s with %s".formatted(leftType.getName(), rightType.getName()));
             }
         }
-        left.checkTypes(scope);
         right.checkTypes(scope);
     }
 }

@@ -9,7 +9,7 @@ import org.antlr.v4.runtime.Token;
 import java.io.File;
 
 public class SymbolTable {
-    private static final Scope<ClassSymbol> globals = new DefaultScope<>();
+    private static Scope<ClassSymbol> globals;
 
     private static boolean semanticErrors = false;
 
@@ -19,13 +19,20 @@ public class SymbolTable {
     public static final ClassSymbol String = new ClassSymbol("String");
     public static final ClassSymbol Bool = new ClassSymbol("Bool");
 
-    public static void defineBasicClasses() {
+    private static boolean initialized = false;
+
+    public static void init() {
         // Populate global scope
+        semanticErrors = false;
+        globals = new DefaultScope<>();
         globals.add(Object);
         globals.add(IO);
         globals.add(Int);
         globals.add(String);
         globals.add(Bool);
+
+        if (initialized) return;
+        initialized = true;
 
         // Object: Define methods
         var methods = Object.getMethodScope();

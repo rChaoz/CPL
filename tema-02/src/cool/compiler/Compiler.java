@@ -131,7 +131,7 @@ public class Compiler {
         }
 
         // Populate global scope
-        SymbolTable.defineBasicClasses();
+        SymbolTable.init();
 
         // Create AST
         Program program = new CoolVisitor().visitProgram(globalTree);
@@ -284,6 +284,25 @@ public class Compiler {
             }
         }
 
+        // Perform type-checking on all attributes
+        for (var cls : program.getClasses()) {
+            ClassSymbol classSymbol = SymbolTable.lookupClass(cls.getName());
+            var scope = classSymbol.getAttributeScope();
+
+            for (var attribute : cls.getAttributes()) {
+                VariableSymbol attrSymbol = scope.lookup(attribute.getId());
+                if (attrSymbol == null || attribute.getInitializer() == null) continue;
+                // Check type
+                var declaredType = attrSymbol.getType(scope);
+                var expressionType = attribute.getInitializer().getExpressionType(scope);
+                if (expressionType != null && declaredType != null && !declaredType.isSuperTypeOf(expressionType))
+                    SymbolTable.error(attribute, attribute.getContext().expr().start,
+                            "Type %s of initialization expression of attribute %s is incompatible with declared type %s"
+                                    .formatted(expressionType.getName(), attribute.getId(), attribute.getType()));
+                attribute.getInitializer().checkTypes(scope);
+                scope.add(new VariableSymbol(attribute.getId(), declaredType));
+            }
+        }
         // Perform type-checking on all method bodies
         for (var cls : program.getClasses()) {
             ClassSymbol classSymbol = SymbolTable.lookupClass(cls.getName());
@@ -294,7 +313,7 @@ public class Compiler {
                 var scope = methodSymbol.getMethodScope();
                 var expressionType = method.getBody().getExpressionType(scope);
                 if (expressionType != null && !methodSymbol.getReturnType(scope).isSuperTypeOf(expressionType))
-                    SymbolTable.error(method, method.getContext().TYPE().getSymbol(),
+                    SymbolTable.error(method, method.getContext().expr().start,
                             "Type %s of the body of method %s is incompatible with declared return type %s"
                                     .formatted(expressionType.getName(), method.getId(), method.getType()));
                 // Type-check the method body

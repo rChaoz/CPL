@@ -21,6 +21,6 @@ public abstract class Expression extends ASTNode {
     protected void ensureConditionBool(Scope<VariableSymbol> scope, Expression operand, String instruction, Token token) {
         ClassSymbol type = operand.getExpressionType(scope);
         if (type != null && type != SymbolTable.Bool)
-            SymbolTable.error(this, token, "%s condition has type %s instead of Int".formatted(instruction, type.getName()));
+            SymbolTable.error(this, token, "%s condition has type %s instead of Bool".formatted(instruction, type.getName()));
     }
 }
