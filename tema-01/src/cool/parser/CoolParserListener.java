@@ -1,4 +1,4 @@
-// Generated from D:/Facultate/CPL/tema-01/src/cool/parser/CoolParser.g4 by ANTLR 4.13.1
+// Generated from D:/Facultate/CPL/tema-02/src/cool/parser/CoolParser.g4 by ANTLR 4.13.1
 
     package cool.parser;
 
