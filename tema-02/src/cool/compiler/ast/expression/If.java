@@ -40,7 +40,7 @@ public class If extends Expression {
         var thenType = thenBranch.getExpressionType(scope);
         var elseType = elseBranch.getExpressionType(scope);
         if (thenType == null || elseType == null) return null;
-        return ClassSymbol.joinTypes(thenType, elseType);
+        return ClassSymbol.joinTypes(thenType, elseType, scope);
     }
 
     @Override

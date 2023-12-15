@@ -37,34 +37,6 @@ public class LetLocal extends ASTNode {
         return initializer;
     }
 
-    public void checkTypes(Scope<VariableSymbol> scope) {
-
-        if (id.equals("self")) {
-            SymbolTable.error(this, context.ID().getSymbol(), "Let variable has illegal name self");
-            return;
-        }
-
-        ClassSymbol declaredType = SymbolTable.lookupClass(type);
-
-        if (declaredType == null && !type.equals("SELF_TYPE")) {
-            SymbolTable.error(this, context.TYPE().getSymbol(),
-                    "Let variable %s has undefined type %s".formatted(id, type));
-            return;
-        }
-
-        if (initializer == null) return;
-        initializer.checkTypes(scope);
-
-        ClassSymbol expressionType = initializer.getExpressionType(scope);
-
-        // Nothing other than SELF_TYPE can be assigned to SELF_TYPE
-        // SELF_TYPE can be assigned to CurrentClass and all superclasses
-        if (expressionType != null && !declaredType.isSuperTypeOf(expressionType))
-            SymbolTable.error(this, context.expr().start,
-                    "Type %s of initialization expression of identifier %s is incompatible with declared type %s"
-                            .formatted(expressionType.getName(), id, declaredType.getName()));
-    }
-
     @Override
     protected void printTitle() {
         print("local");
@@ -75,5 +47,30 @@ public class LetLocal extends ASTNode {
         print(id);
         print(type);
         if (initializer != null) print(initializer);
+    }
+
+    public void checkTypes(Scope<VariableSymbol> scope) {
+        if (id.equals("self")) {
+            SymbolTable.error(this, context.ID().getSymbol(), "Let variable has illegal name self");
+            return;
+        }
+
+        ClassSymbol declaredType = SymbolTable.lookupClass(type);
+
+        if (declaredType == null) {
+            SymbolTable.error(this, context.TYPE().getSymbol(),
+                    "Let variable %s has undefined type %s".formatted(id, type));
+        }
+
+        if (initializer == null) return;
+        initializer.checkTypes(scope);
+
+        ClassSymbol expressionType = initializer.getExpressionType(scope);
+        if (declaredType == null || expressionType == null) return;
+
+        if (!expressionType.canBeAssignedTo(declaredType, scope.getCurrentClass()))
+            SymbolTable.error(this, context.expr().start,
+                    "Type %s of initialization expression of identifier %s is incompatible with declared type %s"
+                            .formatted(expressionType.getName(), id, declaredType.getName()));
     }
 }

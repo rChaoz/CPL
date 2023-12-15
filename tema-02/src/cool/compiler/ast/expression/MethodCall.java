@@ -43,19 +43,22 @@ public class MethodCall extends Expression {
     public ClassSymbol getExpressionType(Scope<VariableSymbol> scope) {
         MethodSymbol method;
         // Resolve method
-        ClassSymbol targetCls;
+        ClassSymbol cls = targetObject.getExpressionType(scope), targetCls;
+        if (cls == null) return null;
+
         if (targetType != null) targetCls = SymbolTable.lookupClass(targetType);
-        else targetCls = targetObject.getExpressionType(scope);
+        else targetCls = cls == SymbolTable.SelfType ? scope.getCurrentClass() : cls;
 
         if (targetCls == null) return null;
         method = targetCls.getMethodScope().lookup(name);
 
         if (method == null) return null;
-        return method.getReturnType(targetCls);
+        return method.getReturnType(cls);
     }
 
     @Override
     public void checkTypes(Scope<VariableSymbol> scope) {
+        targetObject.checkTypes(scope);
         ClassSymbol cls = targetObject.getExpressionType(scope);
         if (cls == null) return;
 
@@ -80,7 +83,7 @@ public class MethodCall extends Expression {
             }
         } else {
             // Dynamic dispatch
-            targetCls = cls;
+            targetCls = cls == SymbolTable.SelfType ? scope.getCurrentClass() : cls;
         }
 
         checkMethodCall(scope, targetCls, name, arguments, this, context.ID().getSymbol());
@@ -101,7 +104,8 @@ public class MethodCall extends Expression {
                 var formal = method.getFormals().get(i);
                 ClassSymbol argType = arg.getExpressionType(scope);
                 ClassSymbol formalType = formal.getType();
-                if (argType != null && !formalType.isSuperTypeOf(argType))
+                if (argType == null || formalType == null) continue;
+                if (!argType.canBeAssignedTo(formalType, scope.getCurrentClass()))
                     SymbolTable.error(node, arg.getContext().start,
                             "In call to method %s of class %s, actual type %s of formal parameter %s is incompatible with declared type %s"
                                     .formatted(name, cls.getName(), argType.getName(), formal.getName(), formalType.getName()));

@@ -50,10 +50,12 @@ public class Assign extends Expression {
             SymbolTable.error(this, context.ID().getSymbol(), "Undefined identifier %s".formatted(id));
             return;
         }
-        ClassSymbol type = expression.getExpressionType(scope);
-        if (type != null && !var.getType(scope).isSuperTypeOf(type))
+        ClassSymbol varType = var.getType();
+        ClassSymbol expressionType = expression.getExpressionType(scope);
+        if (expressionType == null || varType == null) return;
+        if (!expressionType.canBeAssignedTo(varType, scope.getCurrentClass()))
             SymbolTable.error(this, context.expr().start,
-                    "Type %s of assigned expression is incompatible with declared type %s of identifier %s"
-                            .formatted(type.getName(), var.getTypeName(), id));
+                        "Type %s of assigned expression is incompatible with declared type %s of identifier %s"
+                                .formatted(expressionType.getName(), varType.getName(), id));
     }
 }

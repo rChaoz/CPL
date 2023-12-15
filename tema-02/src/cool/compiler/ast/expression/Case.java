@@ -40,9 +40,10 @@ public class Case extends Expression {
         var branchTypes = new ArrayList<ClassSymbol>(branches.size());
         for (var branch : branches) {
             if (branch.getId().equals("self")) continue;
-            branchTypes.add(branch.getBody().getExpressionType(scope));
+            var branchType = branch.getBody().getExpressionType(scope);
+            if (branchType != null) branchTypes.add(branchType);
         }
-        return ClassSymbol.joinTypes(branchTypes);
+        return ClassSymbol.joinTypes(branchTypes, scope);
     }
 
     @Override

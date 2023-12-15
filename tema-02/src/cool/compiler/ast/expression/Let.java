@@ -36,8 +36,6 @@ public class Let extends Expression {
         if (local.getId().equals("self")) return scope;
 
         ClassSymbol localType = SymbolTable.lookupClass(local.getType());
-        if (localType == null && !local.getType().equals("SELF_TYPE")) return scope;
-
         var newScope = new DefaultScope<>(scope);
         newScope.add(new VariableSymbol(local.getId(), localType));
         return newScope;

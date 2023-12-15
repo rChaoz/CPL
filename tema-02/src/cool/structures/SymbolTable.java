@@ -18,6 +18,7 @@ public class SymbolTable {
     public static final ClassSymbol Int = new ClassSymbol("Int");
     public static final ClassSymbol String = new ClassSymbol("String");
     public static final ClassSymbol Bool = new ClassSymbol("Bool");
+    public static final ClassSymbol SelfType = new ClassSymbol("SELF_TYPE", null);
 
     private static boolean initialized = false;
 
@@ -30,6 +31,7 @@ public class SymbolTable {
         globals.add(Int);
         globals.add(String);
         globals.add(Bool);
+        globals.add(SelfType);
 
         if (initialized) return;
         initialized = true;
@@ -38,12 +40,12 @@ public class SymbolTable {
         var methods = Object.getMethodScope();
         methods.add(new MethodSymbol("abort", Object, Object));
         methods.add(new MethodSymbol("type_name", Object, String));
-        methods.add(new MethodSymbol("copy", Object, null));
+        methods.add(new MethodSymbol("copy", Object, SelfType));
 
         // IO: Define methods
         methods = IO.getMethodScope();
-        methods.add(new MethodSymbol("out_string", IO, null, new VariableSymbol("x", String)));
-        methods.add(new MethodSymbol("out_int", IO, null, new VariableSymbol("x", Int)));
+        methods.add(new MethodSymbol("out_string", IO, SelfType, new VariableSymbol("x", String)));
+        methods.add(new MethodSymbol("out_int", IO, SelfType, new VariableSymbol("x", Int)));
         methods.add(new MethodSymbol("in_string", IO, String));
         methods.add(new MethodSymbol("in_int", IO, Int));
 

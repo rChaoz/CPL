@@ -139,7 +139,7 @@ public class Compiler {
         for (var cls : program.getClasses()) {
             if (cls.getName().equals("SELF_TYPE"))
                 SymbolTable.error(cls, cls.getContext().name, "Class has illegal name SELF_TYPE");
-            if (!SymbolTable.defineClass(cls.getName()))
+            else if (!SymbolTable.defineClass(cls.getName()))
                 SymbolTable.error(cls, cls.getContext().name, "Class %s is redefined".formatted(cls.getName()));
         }
         // Set parents
@@ -226,34 +226,40 @@ public class Compiler {
                     }
 
                     ClassSymbol returnType = SymbolTable.lookupClass(method.getType());
-                    if (returnType == null && !method.getType().equals("SELF_TYPE")) {
+                    if (returnType == null) {
                         SymbolTable.error(method, method.getContext().TYPE().getSymbol(),
                                 "Class %s has method %s with undefined return type %s".formatted(c, m, method.getType()));
-                        continue;
                     }
 
                     MethodSymbol methodSymbol = new MethodSymbol(m, classSymbol, returnType);
                     for (var formal : method.getFormals()) {
-                        if (formal.getId().equals("self"))
+                        boolean addToScope = true;
+                        if (formal.getId().equals("self")) {
                             SymbolTable.error(formal, formal.getContext().ID().getSymbol(),
                                     "Method %s of class %s has formal parameter with illegal name self".formatted(m, c));
-                        else if (methodSymbol.getMethodScope().lookup(formal.getId(), false) != null)
+                            addToScope = false;
+                        }
+                        if (methodSymbol.getMethodScope().lookup(formal.getId(), false) != null) {
                             SymbolTable.error(formal, formal.getContext().ID().getSymbol(),
                                     "Method %s of class %s redefines formal parameter %s".formatted(m, c, formal.getId()));
-                        else if (formal.getType().equals("SELF_TYPE"))
+                            addToScope = false;
+                        }
+
+                        ClassSymbol formalType;
+                        if (formal.getType().equals("SELF_TYPE")) {
                             SymbolTable.error(formal, formal.getContext().TYPE().getSymbol(),
                                     "Method %s of class %s has formal parameter %s with illegal type SELF_TYPE".formatted(m, c, formal.getId()));
-                        else {
-                            ClassSymbol type = SymbolTable.lookupClass(formal.getType());
-                            if (type == null)
+                            formalType = null;
+                        } else {
+                            formalType = SymbolTable.lookupClass(formal.getType());
+                            if (formalType == null)
                                 SymbolTable.error(formal, formal.getContext().TYPE().getSymbol(),
                                         "Method %s of class %s has formal parameter %s with undefined type %s"
                                                 .formatted(m, c, formal.getId(), formal.getType()));
-                                // All checks passed
-                            else methodSymbol.addFormal(new VariableSymbol(formal.getId(), type));
                         }
+
+                        methodSymbol.addFormal(new VariableSymbol(formal.getId(), formalType), addToScope);
                     }
-                    if (methodSymbol.getFormals().size() != method.getFormals().size()) continue;
 
                     MethodSymbol superMethod = classSymbol.getParent() == null ? null : classSymbol.getParent().getMethodScope().lookup(m);
                     if (superMethod != null) {
@@ -264,18 +270,22 @@ public class Compiler {
                             SymbolTable.error(method, method.getContext().ID().getSymbol(),
                                     "Class %s overrides method %s with different number of formal parameters".formatted(c, m));
                         else for (int i = 0; i < methodFormals.size(); ++i) {
-                            var mf = methodFormals.get(i);
-                            var sf = superFormals.get(i);
-                            if (mf.getType() != sf.getType())
-                                SymbolTable.error(method.getFormals().get(i), method.getFormals().get(i).getContext().TYPE().getSymbol(),
+                            var mft = methodFormals.get(i).getType();
+                            var sft = superFormals.get(i).getType();
+                            if (mft != null && sft != null && mft != sft) {
+                                var formal = method.getFormals().get(i);
+                                SymbolTable.error(formal, formal.getContext().TYPE().getSymbol(),
                                         "Class %s overrides method %s but changes type of formal parameter %s from %s to %s"
-                                                .formatted(c, m, mf.getName(), sf.getTypeName(), mf.getTypeName()));
+                                                .formatted(c, m, formal.getId(), sft.getName(), mft.getName()));
+                            }
                         }
 
-                        if (returnType != superMethod.getReturnType())
+                        var superReturnType = superMethod.getReturnType();
+                        if (returnType != null && superReturnType != null && returnType != superReturnType) {
                             SymbolTable.error(method, method.getContext().TYPE().getSymbol(),
                                     "Class %s overrides method %s but changes return type from %s to %s"
-                                            .formatted(c, m, superMethod.getReturnTypeName(), method.getType()));
+                                            .formatted(c, m, superReturnType.getName(), returnType.getName()));
+                        }
                     }
 
                     // All checks passed
@@ -292,15 +302,17 @@ public class Compiler {
             for (var attribute : cls.getAttributes()) {
                 VariableSymbol attrSymbol = scope.lookup(attribute.getId());
                 if (attrSymbol == null || attribute.getInitializer() == null) continue;
-                // Check type
-                var declaredType = attrSymbol.getType(scope);
+                // Register attribute
+                var declaredType = attrSymbol.getType();
+                attribute.getInitializer().checkTypes(scope);
+                scope.add(new VariableSymbol(attribute.getId(), declaredType));
+                // Check types
                 var expressionType = attribute.getInitializer().getExpressionType(scope);
-                if (expressionType != null && declaredType != null && !declaredType.isSuperTypeOf(expressionType))
+                if (expressionType == null || declaredType == null) continue;
+                if (!expressionType.canBeAssignedTo(declaredType, classSymbol))
                     SymbolTable.error(attribute, attribute.getContext().expr().start,
                             "Type %s of initialization expression of attribute %s is incompatible with declared type %s"
                                     .formatted(expressionType.getName(), attribute.getId(), attribute.getType()));
-                attribute.getInitializer().checkTypes(scope);
-                scope.add(new VariableSymbol(attribute.getId(), declaredType));
             }
         }
         // Perform type-checking on all method bodies
@@ -309,15 +321,17 @@ public class Compiler {
             for (var method : cls.getMethods()) {
                 MethodSymbol methodSymbol = classSymbol.getMethodScope().lookup(method.getId());
                 if (methodSymbol == null) continue;
-                // Check return type
+                // Type-check the method body
                 var scope = methodSymbol.getMethodScope();
+                method.getBody().checkTypes(scope);
+                // Check return type
+                var declaredType = methodSymbol.getReturnType();
                 var expressionType = method.getBody().getExpressionType(scope);
-                if (expressionType != null && !methodSymbol.getReturnType(scope).isSuperTypeOf(expressionType))
+                if (declaredType == null || expressionType == null) continue;
+                if (!expressionType.canBeAssignedTo(declaredType, classSymbol))
                     SymbolTable.error(method, method.getContext().expr().start,
                             "Type %s of the body of method %s is incompatible with declared return type %s"
                                     .formatted(expressionType.getName(), method.getId(), method.getType()));
-                // Type-check the method body
-                method.getBody().checkTypes(scope);
             }
         }
 

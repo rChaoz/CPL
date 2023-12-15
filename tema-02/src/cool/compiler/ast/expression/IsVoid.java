@@ -37,5 +37,6 @@ public class IsVoid extends Expression {
 
     @Override
     public void checkTypes(Scope<VariableSymbol> scope) {
+        target.checkTypes(scope);
     }
 }

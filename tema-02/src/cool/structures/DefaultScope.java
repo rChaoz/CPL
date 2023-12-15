@@ -56,7 +56,7 @@ public class DefaultScope<T extends Symbol> implements Scope<T> {
 
     public void setParent(Scope<T> parent) {
         this.parent = parent;
-        this.currentClass = parent != null ? parent.getCurrentClass() : null;
+        if (this.currentClass == null) this.currentClass = parent != null ? parent.getCurrentClass() : null;
     }
 
     @Override

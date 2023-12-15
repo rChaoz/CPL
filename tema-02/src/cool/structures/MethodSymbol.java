@@ -22,26 +22,17 @@ public class MethodSymbol extends Symbol {
         }
     }
 
-    public boolean addFormal(VariableSymbol formal) {
-        if (!methodScope.add(formal)) return false;
+    public void addFormal(VariableSymbol formal, boolean addToScope) {
         formals.add(formal);
-        return true;
+        if (addToScope) methodScope.add(formal);
     }
 
     public ClassSymbol getReturnType() {
         return returnType;
     }
 
-    public ClassSymbol getReturnType(Scope<?> scope) {
-        return returnType == null ? scope.getCurrentClass() : returnType;
-    }
-
-    public ClassSymbol getReturnType(ClassSymbol currentClass) {
-        return returnType == null ? currentClass : returnType;
-    }
-
-    public String getReturnTypeName() {
-        return returnType == null ? "SELF_TYPE" : returnType.name;
+    public ClassSymbol getReturnType(ClassSymbol objectClass) {
+        return returnType == SymbolTable.SelfType ? objectClass : returnType;
     }
 
     public List<VariableSymbol> getFormals() {

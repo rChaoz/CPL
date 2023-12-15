@@ -37,7 +37,7 @@ public class Instantiation extends Expression {
 
     @Override
     public void checkTypes(Scope<VariableSymbol> scope) {
-        if (SymbolTable.lookupClass(this.type) == null)
+        if (SymbolTable.lookupClass(type) == null)
             SymbolTable.error(this, context.TYPE().getSymbol(),
                     "new is used with undefined type %s".formatted(this.type));
     }

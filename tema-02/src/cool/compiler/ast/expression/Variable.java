@@ -32,7 +32,7 @@ public class Variable extends Expression {
     @Override
     public ClassSymbol getExpressionType(Scope<VariableSymbol> scope) {
         VariableSymbol var = scope.lookup(id);
-        return var == null ? null : var.getType(scope);
+        return var == null ? null : var.getType();
     }
 
     @Override
