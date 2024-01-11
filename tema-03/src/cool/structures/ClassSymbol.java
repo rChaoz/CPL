@@ -9,7 +9,6 @@ public class ClassSymbol extends Symbol {
 
     public ClassSymbol(String name) {
         this(name, SymbolTable.Object);
-        attributeScope.add(new VariableSymbol("self", SymbolTable.SelfType));
     }
 
     ClassSymbol(String name, ClassSymbol parent) {

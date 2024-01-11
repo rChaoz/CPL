@@ -31,13 +31,14 @@ public class Variable extends Expression {
 
     @Override
     public ClassSymbol getExpressionType(Scope<VariableSymbol> scope) {
+        if (id.equals("self")) return SymbolTable.SelfType;
         VariableSymbol var = scope.lookup(id);
         return var == null ? null : var.getType();
     }
 
     @Override
     public void checkTypes(Scope<VariableSymbol> scope) {
-        if (scope.lookup(id) == null)
+        if (scope.lookup(id) == null && !id.equals("self"))
             SymbolTable.error(this, context.start, "Undefined identifier %s".formatted(id));
     }
 }

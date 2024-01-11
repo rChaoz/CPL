@@ -30,6 +30,10 @@ public class Literal extends Expression {
         return type;
     }
 
+    public String getContent() {
+        return content;
+    }
+
     @Override
     protected void printTitle() {
         print(content);

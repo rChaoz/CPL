@@ -1,7 +1,6 @@
 package cool.structures;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 public class DefaultScope<T extends Symbol> implements Scope<T> {
 
@@ -67,5 +66,28 @@ public class DefaultScope<T extends Symbol> implements Scope<T> {
     @Override
     public String toString() {
         return symbols.values().toString();
+    }
+
+    @Override
+    public Collection<T> asCollection() {
+        return symbols.values();
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        return new Iterator<>() {
+            final Iterator<T> parentIterator = parent != null ? parent.iterator() : Collections.emptyIterator();
+            final Iterator<T> iterator = symbols.values().iterator();
+
+            @Override
+            public boolean hasNext() {
+                return parentIterator.hasNext() || iterator.hasNext();
+            }
+
+            @Override
+            public T next() {
+                return parentIterator.hasNext() ? parentIterator.next() : iterator.next();
+            }
+        };
     }
 }

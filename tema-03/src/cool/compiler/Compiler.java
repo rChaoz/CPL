@@ -2,6 +2,8 @@ package cool.compiler;
 
 import cool.compiler.ast.PClass;
 import cool.compiler.ast.Program;
+import cool.compiler.mips.Classes;
+import cool.compiler.mips.Literals;
 import cool.lexer.CoolLexer;
 import cool.parser.CoolParser;
 import cool.structures.ClassSymbol;
@@ -22,6 +24,32 @@ import java.util.Set;
 public class Compiler {
     // Annotates class nodes with the names of files where they are defined.
     public static ParseTreeProperty<String> fileNames = new ParseTreeProperty<>();
+
+    private static final String dataStart = """
+                .data
+                .align  2
+                .globl  class_nameTab
+                .globl  Int_protObj
+                .globl  String_protObj
+                .globl  bool_const0
+                .globl  bool_const1
+                .globl  Main_protObj
+                .globl  _int_tag
+                .globl  _string_tag
+                .globl  _bool_tag
+            """;
+
+    private static final String heapStart = """
+                .globl heap_start
+            heap_start:
+                .word 0
+                .text
+                .globl  Int_init
+                .globl  String_init
+                .globl  Bool_init
+                .globl  Main_init
+                .global Main.main
+            """;
 
     public static void main(String[] args) throws IOException {
         if (args.length == 0) {
@@ -134,7 +162,8 @@ public class Compiler {
         SymbolTable.init();
 
         // Create AST
-        Program program = new CoolVisitor().visitProgram(globalTree);
+        CoolVisitor visitor = new CoolVisitor();
+        Program program = visitor.visitProgram(globalTree);
         // Create class symbols
         for (var cls : program.getClasses()) {
             if (cls.getName().equals("SELF_TYPE"))
@@ -339,5 +368,17 @@ public class Compiler {
             System.err.println("Compilation halted");
             return;
         }
+
+        // Compile to MIPS
+        Literals literals = new Literals(visitor.getLiterals());
+        Classes c = new Classes();
+        for (PClass pClass : program.getClasses()) c.defineClass(SymbolTable.lookupClass(pClass.getName()));
+        literals.addClassNames(c);
+
+        System.out.print(dataStart);
+        System.out.print(c.generateBasicTags());
+        System.out.print(literals.generateCode());
+        System.out.print(c.generateCode(literals));
+        System.out.print(heapStart);
     }
 }

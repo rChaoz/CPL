@@ -7,6 +7,7 @@ import cool.parser.CoolParserBaseVisitor;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -119,24 +120,36 @@ public class CoolVisitor extends CoolParserBaseVisitor<ASTNode> {
 
     // Literals
 
+    private final List<Literal> literls = new ArrayList<>();
+
+    public List<Literal> getLiterals() {
+        return literls;
+    }
+
+    private Literal literal(ParserRuleContext ctx, Literal.Type type, String value) {
+        var literal = new Literal(ctx, type, value);
+        literls.add(literal);
+        return literal;
+    }
+
     @Override
     public Literal visitLiteralInteger(CoolParser.LiteralIntegerContext ctx) {
-        return new Literal(ctx, Literal.Type.INTEGER, ctx.getText());
+        return literal(ctx, Literal.Type.INTEGER, ctx.getText());
     }
 
     @Override
     public Literal visitLiteralString(CoolParser.LiteralStringContext ctx) {
-        return new Literal(ctx, Literal.Type.STRING, ctx.getText());
+        return literal(ctx, Literal.Type.STRING, ctx.getText());
     }
 
     @Override
     public Literal visitLiteralTrue(CoolParser.LiteralTrueContext ctx) {
-        return new Literal(ctx, Literal.Type.BOOLEAN, "true");
+        return literal(ctx, Literal.Type.BOOLEAN, "true");
     }
 
     @Override
     public Literal visitLiteralFalse(CoolParser.LiteralFalseContext ctx) {
-        return new Literal(ctx, Literal.Type.BOOLEAN, "false");
+        return literal(ctx, Literal.Type.BOOLEAN, "false");
     }
 
     // Single-argument expressions

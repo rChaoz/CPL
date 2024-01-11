@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Main" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="cool.compiler.Compiler" />
+    <module name="tema-03" />
+    <option name="PROGRAM_PARAMETERS" value="tests/tema3/00-simple.cl" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="cool.compiler.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

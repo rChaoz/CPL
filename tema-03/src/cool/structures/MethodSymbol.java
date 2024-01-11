@@ -4,18 +4,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MethodSymbol extends Symbol {
-    private final ClassSymbol returnType;
+    private final ClassSymbol ownerClass, returnType;
     private final List<VariableSymbol> formals = new ArrayList<>();
     private final Scope<VariableSymbol> methodScope;
 
-    public MethodSymbol(String name, ClassSymbol cls, ClassSymbol returnType) {
+    public MethodSymbol(String name, ClassSymbol ownerClass, ClassSymbol returnType) {
         super(name);
+        this.ownerClass = ownerClass;
         this.returnType = returnType;
-        this.methodScope = new DefaultScope<>(cls.getAttributeScope());
+        this.methodScope = new DefaultScope<>(ownerClass.getAttributeScope());
     }
 
-    public MethodSymbol(String name, ClassSymbol cls, ClassSymbol returnType, VariableSymbol ...formals) {
-        this(name, cls, returnType);
+    public MethodSymbol(String name, ClassSymbol ownerClass, ClassSymbol returnType, VariableSymbol ...formals) {
+        this(name, ownerClass, returnType);
         for (var formal : formals) {
             this.formals.add(formal);
             methodScope.add(formal);
@@ -25,6 +26,10 @@ public class MethodSymbol extends Symbol {
     public void addFormal(VariableSymbol formal, boolean addToScope) {
         formals.add(formal);
         if (addToScope) methodScope.add(formal);
+    }
+
+    public ClassSymbol getOwnerClass() {
+        return ownerClass;
     }
 
     public ClassSymbol getReturnType() {

@@ -1,6 +1,8 @@
 package cool.structures;
 
-public interface Scope<T extends Symbol> {
+import java.util.Collection;
+
+public interface Scope<T extends Symbol> extends Iterable<T> {
     boolean add(T sym);
 
     T lookup(String str);
@@ -12,4 +14,6 @@ public interface Scope<T extends Symbol> {
     void setParent(Scope<T> parent);
 
     ClassSymbol getCurrentClass();
+
+    Collection<T> asCollection();
 }
