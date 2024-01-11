@@ -1,7 +1,7 @@
 package cool.compiler.mips;
 
-import cool.compiler.ast.Method;
 import cool.compiler.ast.expression.Expression;
+import cool.structures.MethodSymbol;
 import cool.structures.VariableSymbol;
 
 public class Methods {
@@ -24,24 +24,30 @@ public class Methods {
                 jr      $ra
             """;
 
-    static String generateMethodBody(Classes.Class cls, Method method) {
-        return cls.getName() + "." + method.getId() + ":" + K.SEP +
-                methodBodyHead + Expressions.generateBody(cls, method.getBody()) + methodBodyTail;
+    public static String generateMethodBody(Classes.Class cls, Literals literals, MethodSymbol method) {
+        StringBuilder builder = new StringBuilder(cls.getName()).append('.').append(method.getName()).append(':').append(K.SEP);
+
+        builder.append(methodBodyHead);
+        Expressions.generateMethodBody(builder, cls, literals, method);
+        builder.append(methodBodyTail);
+
+        return builder.toString();
     }
 
-    public static String generateInitMethodBody(Classes.Class cls) {
+    public static String generateInitMethodBody(Classes.Class cls, Literals literals) {
         StringBuilder builder = new StringBuilder(cls.getName()).append("_init:").append(K.SEP);
         builder.append(methodBodyHead);
 
         // Call parent object initializer
-        if (cls.getParent() != null) builder.append(K.JAL).append(cls.getParent().getName()).append("_init").append(K.SEP);
+        if (cls.getParent() != null) K.jal(builder, cls.getParent().getName() + "_init");
 
         // Initialize all attributes that have an initializer
+        var attributeScope = Expressions.createAttributeScope(cls);
         for (VariableSymbol attr : cls.getSymbol().getAttributeScope().asCollection()) {
             Expression initializer = attr.getInitializer();
             if (initializer == null) continue;
-            builder.append(Expressions.generateBody(cls, initializer));
-            // TODO set attribute to $a0
+            Expressions.generateAttributeBody(builder, cls, literals, initializer);
+            K.sw(builder, "$a0", attributeScope.lookup(attr.getName()).getAddress());
         }
 
         builder.append(returnSelf).append(methodBodyTail);

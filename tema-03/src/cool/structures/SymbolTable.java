@@ -38,22 +38,24 @@ public class SymbolTable {
 
         // Object: Define methods
         var methods = Object.getMethodScope();
-        methods.add(new MethodSymbol("abort", Object, Object));
-        methods.add(new MethodSymbol("type_name", Object, String));
-        methods.add(new MethodSymbol("copy", Object, SelfType));
+        methods.add(new MethodSymbol("abort", Object, Object, null));
+        methods.add(new MethodSymbol("type_name", Object, String, null));
+        methods.add(new MethodSymbol("copy", Object, SelfType, null));
 
         // IO: Define methods
         methods = IO.getMethodScope();
-        methods.add(new MethodSymbol("out_string", IO, SelfType, new VariableSymbol("x", String, null)));
-        methods.add(new MethodSymbol("out_int", IO, SelfType, new VariableSymbol("x", Int, null)));
-        methods.add(new MethodSymbol("in_string", IO, String));
-        methods.add(new MethodSymbol("in_int", IO, Int));
+        methods.add(new MethodSymbol("out_string", IO, SelfType, null, new VariableSymbol("x", String, null)));
+        methods.add(new MethodSymbol("out_int", IO, SelfType, null, new VariableSymbol("x", Int, null)));
+        methods.add(new MethodSymbol("in_string", IO, String, null));
+        methods.add(new MethodSymbol("in_int", IO, Int, null));
 
         // String: Define methods
         methods = String.getMethodScope();
-        methods.add(new MethodSymbol("length", String, Int));
-        methods.add(new MethodSymbol("concat", String, String, new VariableSymbol("s", String, null)));
-        methods.add(new MethodSymbol("substr", String, String, new VariableSymbol("i", Int, null), new VariableSymbol("l", Int, null)));
+        methods.add(new MethodSymbol("length", String, Int, null));
+        methods.add(new MethodSymbol("concat", String, String, null,
+                new VariableSymbol("s", String, null)));
+        methods.add(new MethodSymbol("substr", String, String, null,
+                new VariableSymbol("i", Int, null), new VariableSymbol("l", Int, null)));
     }
 
     public static boolean defineClass(String name) {

@@ -260,7 +260,7 @@ public class Compiler {
                                 "Class %s has method %s with undefined return type %s".formatted(c, m, method.getType()));
                     }
 
-                    MethodSymbol methodSymbol = new MethodSymbol(m, classSymbol, returnType);
+                    MethodSymbol methodSymbol = new MethodSymbol(m, classSymbol, returnType, method.getBody());
                     for (var formal : method.getFormals()) {
                         boolean addToScope = true;
                         if (formal.getId().equals("self")) {
@@ -378,6 +378,11 @@ public class Compiler {
         System.out.print(literals.generateCode());
         System.out.print(c.generateCode(literals));
         System.out.print(heapStart);
-        for (var cls : c) System.out.print(Methods.generateInitMethodBody(cls));
+        for (var cls : c) System.out.print(Methods.generateInitMethodBody(cls, literals));
+        for (var cls : c) {
+            if (cls.isBaseClass()) continue;
+            for (var method : cls.getSymbol().getMethodScope().asCollection())
+                System.out.print(Methods.generateMethodBody(cls, literals, method));
+        }
     }
 }

@@ -24,4 +24,18 @@ class K {
 
     // Instructions
     static final String JAL = "    jal     ";
+    static final String LW  = "    lw      ";
+    static final String SW  = "    sw      ";
+
+    static void jal(StringBuilder builder, String address) {
+        builder.append(JAL).append(address).append(SEP);
+    }
+
+    static void lw(StringBuilder builder, String register, String address) {
+        builder.append(LW).append(register).append(' ').append(address).append(SEP);
+    }
+
+    static void sw(StringBuilder builder, String register, String address) {
+        builder.append(SW).append(register).append(' ').append(address).append(SEP);
+    }
 }

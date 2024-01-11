@@ -16,12 +16,14 @@ public class Classes implements Iterable<Classes.Class> {
         private final ClassSymbol symbol;
         private final Class parent;
         private final String dispTab;
+        private final boolean isBaseClass;
 
-        public Class(int tag, ClassSymbol symbol, Class parent) {
+        private Class(int tag, ClassSymbol symbol, Class parent, boolean isBaseClass) {
             this.tag = tag;
             this.symbol = symbol;
             this.parent = parent;
             this.dispTab = symbol.getName() + "_dispTab";
+            this.isBaseClass = isBaseClass;
         }
 
         public String getName() {
@@ -42,6 +44,10 @@ public class Classes implements Iterable<Classes.Class> {
 
         public ClassSymbol getSymbol() {
             return symbol;
+        }
+
+        public boolean isBaseClass() {
+            return isBaseClass;
         }
 
         @Override
@@ -106,11 +112,11 @@ public class Classes implements Iterable<Classes.Class> {
     private int tag = 0;
 
     public Classes() {
-        defineClass(SymbolTable.Object);
-        defineClass(SymbolTable.IO);
-        defineClass(SymbolTable.Int);
-        defineClass(SymbolTable.String);
-        defineClass(SymbolTable.Bool);
+        defineClass(SymbolTable.Object, true);
+        defineClass(SymbolTable.IO, true);
+        defineClass(SymbolTable.Int, true);
+        defineClass(SymbolTable.String, true);
+        defineClass(SymbolTable.Bool, true);
     }
 
     private final Map<ClassSymbol, Class> classes = new HashMap<>();
@@ -124,12 +130,16 @@ public class Classes implements Iterable<Classes.Class> {
                 K.WORD + get(SymbolTable.Bool).tag + K.SEP;
     }
 
-    public Class defineClass(ClassSymbol cls) {
+    private Class defineClass(ClassSymbol cls, boolean isBaseClass) {
         if (classes.containsKey(cls)) return classes.get(cls);
-        Class parent = cls.getParent() == null ? null : defineClass(cls.getParent());
-        Class c = new Class(tag++, cls, parent);
+        Class parent = cls.getParent() == null ? null : defineClass(cls.getParent(), isBaseClass);
+        Class c = new Class(tag++, cls, parent, isBaseClass);
         classes.put(cls, c);
         return c;
+    }
+
+    public void defineClass(ClassSymbol cls) {
+        defineClass(cls, false);
     }
 
     public Class get(ClassSymbol cls) {
