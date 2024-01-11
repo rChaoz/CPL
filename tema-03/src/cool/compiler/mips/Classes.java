@@ -36,6 +36,14 @@ public class Classes implements Iterable<Classes.Class> {
             return dispTab;
         }
 
+        public Class getParent() {
+            return parent;
+        }
+
+        public ClassSymbol getSymbol() {
+            return symbol;
+        }
+
         @Override
         public int compareTo(Class o) {
             return Integer.compare(tag, o.tag);

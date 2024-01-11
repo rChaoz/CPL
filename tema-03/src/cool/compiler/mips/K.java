@@ -1,6 +1,8 @@
 package cool.compiler.mips;
 
 class K {
+    // Basic
+
     static final String TAB    = "    ";
     static final String SEP = System.lineSeparator();
 
@@ -19,4 +21,7 @@ class K {
     static void align(StringBuilder builder, int n) {
         builder.append(ALIGN).append(n).append(SEP);
     }
+
+    // Instructions
+    static final String JAL = "    jal     ";
 }

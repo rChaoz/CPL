@@ -4,6 +4,7 @@ import cool.compiler.ast.PClass;
 import cool.compiler.ast.Program;
 import cool.compiler.mips.Classes;
 import cool.compiler.mips.Literals;
+import cool.compiler.mips.Methods;
 import cool.lexer.CoolLexer;
 import cool.parser.CoolParser;
 import cool.structures.ClassSymbol;
@@ -48,7 +49,7 @@ public class Compiler {
                 .globl  String_init
                 .globl  Bool_init
                 .globl  Main_init
-                .global Main.main
+                .globl  Main.main
             """;
 
     public static void main(String[] args) throws IOException {
@@ -242,8 +243,7 @@ public class Compiler {
                         if (type == null && !attribute.getType().equals("SELF_TYPE"))
                             SymbolTable.error(attribute, attribute.getContext().TYPE().getSymbol(),
                                     "Class " + c + " has attribute " + a + " with undefined type " + attribute.getType());
-                            // All checks passed
-                        else classSymbol.getAttributeScope().add(new VariableSymbol(a, type));
+                        classSymbol.getAttributeScope().add(new VariableSymbol(a, type, attribute.getInitializer()));
                     }
                 }
 
@@ -287,7 +287,7 @@ public class Compiler {
                                                 .formatted(m, c, formal.getId(), formal.getType()));
                         }
 
-                        methodSymbol.addFormal(new VariableSymbol(formal.getId(), formalType), addToScope);
+                        methodSymbol.addFormal(new VariableSymbol(formal.getId(), formalType, null), addToScope);
                     }
 
                     MethodSymbol superMethod = classSymbol.getParent() == null ? null : classSymbol.getParent().getMethodScope().lookup(m);
@@ -331,12 +331,10 @@ public class Compiler {
             for (var attribute : cls.getAttributes()) {
                 VariableSymbol attrSymbol = scope.lookup(attribute.getId());
                 if (attrSymbol == null || attribute.getInitializer() == null) continue;
-                // Register attribute
-                var declaredType = attrSymbol.getType();
-                attribute.getInitializer().checkTypes(scope);
-                scope.add(new VariableSymbol(attribute.getId(), declaredType));
                 // Check types
+                var declaredType = attrSymbol.getType();
                 var expressionType = attribute.getInitializer().getExpressionType(scope);
+                attribute.getInitializer().checkTypes(scope);
                 if (expressionType == null || declaredType == null) continue;
                 if (!expressionType.canBeAssignedTo(declaredType, classSymbol))
                     SymbolTable.error(attribute, attribute.getContext().expr().start,
@@ -380,5 +378,6 @@ public class Compiler {
         System.out.print(literals.generateCode());
         System.out.print(c.generateCode(literals));
         System.out.print(heapStart);
+        for (var cls : c) System.out.print(Methods.generateInitMethodBody(cls));
     }
 }

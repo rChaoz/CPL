@@ -37,7 +37,7 @@ public class Let extends Expression {
 
         ClassSymbol localType = SymbolTable.lookupClass(local.getType());
         var newScope = new DefaultScope<>(scope);
-        newScope.add(new VariableSymbol(local.getId(), localType));
+        newScope.add(new VariableSymbol(local.getId(), localType, local.getInitializer()));
         return newScope;
     }
 

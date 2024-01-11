@@ -44,16 +44,16 @@ public class SymbolTable {
 
         // IO: Define methods
         methods = IO.getMethodScope();
-        methods.add(new MethodSymbol("out_string", IO, SelfType, new VariableSymbol("x", String)));
-        methods.add(new MethodSymbol("out_int", IO, SelfType, new VariableSymbol("x", Int)));
+        methods.add(new MethodSymbol("out_string", IO, SelfType, new VariableSymbol("x", String, null)));
+        methods.add(new MethodSymbol("out_int", IO, SelfType, new VariableSymbol("x", Int, null)));
         methods.add(new MethodSymbol("in_string", IO, String));
         methods.add(new MethodSymbol("in_int", IO, Int));
 
         // String: Define methods
         methods = String.getMethodScope();
         methods.add(new MethodSymbol("length", String, Int));
-        methods.add(new MethodSymbol("concat", String, String, new VariableSymbol("s", String)));
-        methods.add(new MethodSymbol("substr", String, String, new VariableSymbol("i", Int), new VariableSymbol("l", Int)));
+        methods.add(new MethodSymbol("concat", String, String, new VariableSymbol("s", String, null)));
+        methods.add(new MethodSymbol("substr", String, String, new VariableSymbol("i", Int, null), new VariableSymbol("l", Int, null)));
     }
 
     public static boolean defineClass(String name) {
