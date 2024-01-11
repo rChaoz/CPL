@@ -1,6 +1,6 @@
 package cool.compiler.mips;
 
-import cool.compiler.ast.expression.Expression;
+import cool.compiler.ast.expression.*;
 import cool.structures.DefaultScope;
 import cool.structures.MethodSymbol;
 import cool.structures.Scope;
@@ -57,8 +57,29 @@ public class Expressions {
     }
 
     private void expression(Expression expr) {
-        // TODO
+        if (expr instanceof Arithmetic);
+        else if (expr instanceof Assign);
+        else if (expr instanceof Block);
+        else if (expr instanceof Case);
+        else if (expr instanceof Comparison);
+        else if (expr instanceof Complement);
+        else if (expr instanceof If);
+        else if (expr instanceof Instantiation);
+        else if (expr instanceof IsVoid);
+        else if (expr instanceof Let);
+        else if (expr instanceof Literal) literal((Literal) expr);
+        else if (expr instanceof MethodCall);
+        else if (expr instanceof SelfMethodCall);
+        else if (expr instanceof Variable);
+        else if (expr instanceof While);
+        else throw new RuntimeException("Unknown expression " + expr.getClass().getCanonicalName() + ": " + expr);
     }
 
-    private void literal()
+    private void literal(Literal literal) {
+        K.la(builder, "$a0", switch (literal.getType()) {
+            case INTEGER -> literals.getName(Integer.parseInt(literal.getContent()));
+            case STRING -> literals.getName(literal.getContent());
+            case BOOLEAN -> literals.getName(Boolean.parseBoolean(literal.getContent()));
+        });
+    }
 }

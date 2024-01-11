@@ -41,9 +41,9 @@ public class Compiler {
             """;
 
     private static final String heapStart = """
-                .globl heap_start
+                .globl  heap_start
             heap_start:
-                .word 0
+                .word   0
                 .text
                 .globl  Int_init
                 .globl  String_init

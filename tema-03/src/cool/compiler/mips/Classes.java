@@ -56,9 +56,9 @@ public class Classes implements Iterable<Classes.Class> {
         }
 
         public String generateProtObject(Literals literals) {
-            String defaultString = "string_const" + literals.getIndex("");
-            String defaultInt = "int_const" + literals.getIndex(0);
-            String defaultBool = "bool_const" + literals.getIndex(false);
+            String defaultString = literals.getName("");
+            String defaultInt = literals.getName(0);
+            String defaultBool = literals.getName(false);
 
             // Deal with basic classes as our general code can't handle the special attributes of these classes
             // (ASCII, int32)
@@ -66,7 +66,7 @@ public class Classes implements Iterable<Classes.Class> {
                     "    .word   " + tag + "\n" +
                     "    .word   5\n" +
                     "    .word   String_dispTab\n" +
-                    "    .word   int_const" + literals.getIndex(0) + "\n" +
+                    "    .word   " + literals.getName(0) + "\n" +
                     "    .asciiz \"\"\n" +
                     "    .align 2\n";
             else if (symbol == SymbolTable.Int) return "Int_protObj:\n" +
@@ -80,8 +80,9 @@ public class Classes implements Iterable<Classes.Class> {
                     "    .word   Bool_dispTab\n" +
                     "    .word   0\n";
 
-            // Calculate size - 3 words for header + number of attributes
-            int size = 3 + symbol.getAttributeScope().asCollection().size();
+            // Calculate size - 3 words for header + number of attributes (parents included)
+            int size = 3;
+            for (VariableSymbol ignored : symbol.getAttributeScope()) size++;
 
             StringBuilder builder = new StringBuilder(getName()).append("_protObj:").append(K.SEP);
             K.word(builder, tag);
@@ -161,7 +162,7 @@ public class Classes implements Iterable<Classes.Class> {
         sorted.sort(null);
 
         for (var cls : sorted) {
-            K.word(nameTab, "strConst" + literals.getIndex(cls.getName()));
+            K.word(nameTab, literals.getName(cls.getName()));
             K.word(objTab, cls.getName() + "_protObj");
             K.word(objTab, cls.getName() + "_init");
             protObjects.append(cls.generateProtObject(literals));

@@ -124,15 +124,15 @@ public class Literals {
         return builder.toString();
     }
 
-    public int getIndex(int literal) {
-        return intLiterals.get(literal);
+    public String getName(int literal) {
+        return "int_const" + intLiterals.get(literal);
     }
 
-    public int getIndex(String literal) {
-        return stringLiterals.get(literal);
+    public String getName(String literal) {
+        return "str_const" + stringLiterals.get(literal);
     }
 
-    public int getIndex(boolean literal) {
-        return booleanLiterals.get(literal);
+    public String getName(boolean literal) {
+        return "bool_const" + booleanLiterals.get(literal);
     }
 }
