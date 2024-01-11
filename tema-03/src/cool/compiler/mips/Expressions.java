@@ -9,7 +9,8 @@ public class Expressions {
     public static Scope<AddressSymbol> createAttributeScope(Classes.Class cls) {
         var attributeScope = new DefaultScope<AddressSymbol>();
         int index = 0;
-        for (var attribute : attributeScope) attributeScope.add(new AddressSymbol(attribute.getName(), index++, AddressSymbol.Type.ATTRIBUTE));
+        for (var attribute : cls.getSymbol().getAttributeScope())
+            attributeScope.add(new AddressSymbol(attribute.getName(), index++, AddressSymbol.Type.ATTRIBUTE));
         return attributeScope;
     }
 
@@ -30,44 +31,42 @@ public class Expressions {
         var attributeScope = createAttributeScope(cls);
 
         // Generate code
-        new Expressions(builder, cls.getName() + "_init_", classes, literals, attributeScope, attributeScope).expression(attributeBody);
+        new Expressions(builder, cls.getName() + "_init_", classes, literals, attributeScope).expression(attributeBody);
     }
 
     public static void generateMethodBody(StringBuilder builder, Classes.Class cls, Classes classes,Literals literals, MethodSymbol method) {
-        // Create attribute & method scopes
+        // Create method scope
         var methodScope = createMethodScope(cls, method.getFormals());
-        var attributeScope = methodScope.getParent();
 
         // Generate code
-        new Expressions(builder, cls.getName() + "." + method.getName(), classes, literals, attributeScope, methodScope).expression(method.getBody());
+        new Expressions(builder, cls.getName() + "." + method.getName(), classes, literals, methodScope).expression(method.getBody());
     }
 
     private final StringBuilder builder;
     private final String prefix;
     private final Classes classes;
     private final Literals literals;
-    private final Scope<AddressSymbol> attributeScope, mainScope;
+    private final Scope<AddressSymbol> mainScope;
     private int exprCounter = 0, localIndex = 0;
 
-    public Expressions(StringBuilder builder, String prefix, Classes classes, Literals literals, Scope<AddressSymbol> attributeScope, Scope<AddressSymbol> mainScope) {
+    public Expressions(StringBuilder builder, String prefix, Classes classes, Literals literals, Scope<AddressSymbol> mainScope) {
         this.builder = builder;
         this.prefix = prefix;
         this.classes = classes;
         this.literals = literals;
-        this.attributeScope = attributeScope;
         this.mainScope = mainScope;
     }
 
     private void expression(Expression expr) {
-        if (expr instanceof Arithmetic);
+        if (expr instanceof Arithmetic) arithmetic((Arithmetic) expr);
         else if (expr instanceof Assign) assign((Assign) expr);
         else if (expr instanceof Block) block((Block) expr);
         else if (expr instanceof Case) casee((Case) expr);
         else if (expr instanceof Comparison) comparison((Comparison) expr);
-        else if (expr instanceof Complement);
-        else if (expr instanceof If);
-        else if (expr instanceof Instantiation);
-        else if (expr instanceof IsVoid);
+        else if (expr instanceof Complement) complement((Complement) expr);
+        else if (expr instanceof If) iff((If) expr);
+        else if (expr instanceof Instantiation) instantiation((Instantiation) expr);
+        else if (expr instanceof IsVoid) isvoid((IsVoid) expr);
         else if (expr instanceof Let);
         else if (expr instanceof Literal) literal((Literal) expr);
         else if (expr instanceof MethodCall);
@@ -75,6 +74,31 @@ public class Expressions {
         else if (expr instanceof Variable);
         else if (expr instanceof While);
         else throw new RuntimeException("Unknown expression " + expr.getClass().getCanonicalName() + ": " + expr);
+    }
+
+    private void arithmetic(Arithmetic arithmetic) {
+        // Evaluate left & right into $a0 and $a1
+        expression(arithmetic.getLeft());
+        K.push(builder, "$a0");
+        localIndex++;
+        expression(arithmetic.getRight());
+        K.move(builder, "$a1", "$a0");
+        K.pop(builder, "$a0");
+        localIndex--;
+        // Extract int32 values from objects
+        K.lw(builder, "$a0", "12($a0)");
+        K.lw(builder, "$a1", "12($a1)");
+        // Perform operation
+        switch (arithmetic.getOperation()) {
+            case ADD -> builder.append(K.ADD).append("$a0").append(' ').append("$a0").append(' ').append("$a1").append(K.SEP);
+            case SUBTRACT -> builder.append(K.SUB).append("$a0").append(' ').append("$a0").append(' ').append("$a1").append(K.SEP);
+            case MULTIPLY -> builder.append(K.MUL).append("$a0").append(' ').append("$a0").append(' ').append("$a1").append(K.SEP);
+            case DIVIDE -> {
+                builder.append(K.DIV).append("$a0").append(' ').append("$a1").append(K.SEP);
+                K.move(builder, "$a0", "$low");
+            }
+        }
+        int32ToObject();
     }
 
     private void assign(Assign assign) {
@@ -224,11 +248,96 @@ public class Expressions {
         K.label(builder, endLabel);
     }
 
+    private void complement(Complement complement) {
+        // Extract int32 value from int
+        K.lw(builder, "$a0", "12($a0)");
+        // Calculate complement
+        builder.append(K.SUB).append("$a0").append(' ').append("$zero").append(' ').append("$a0");
+        int32ToObject();
+    }
+
+    private void iff(If iff) {
+        String prefix = this.prefix + this.exprCounter++;
+        String trueLabel = prefix + "_true", endLabel = prefix + "_end";
+
+        // Evaluate condition & extract Bool attribute
+        expression(iff.getCondition());
+        K.lw(builder, "$a0", "12($a0)");
+        // Test condition result
+        K.branch(builder, "$a0", K.Condition.NotEqual, "$zero", trueLabel);
+
+        // False branch
+        expression(iff.getElseBranch());
+        K.j(builder, endLabel);
+
+        // True branch
+        K.label(builder, trueLabel);
+        expression(iff.getThenBranch());
+        K.label(builder, endLabel);
+    }
+
+    private void instantiation(Instantiation instantiation) {
+        ClassSymbol symbol = SymbolTable.lookupClass(instantiation.getType());
+
+        // Handle dynamic object creation
+        if (symbol == SymbolTable.SelfType) {
+            // Get address of protObj and save it to stack
+            K.lw(builder, "$a0", "0($a0)");
+            K.li(builder, "$t0", 8);
+            builder.append(K.MUL).append("$a0 $a0 $t0").append(K.SEP);
+            K.push(builder, "$a0");
+            // Copy the protObj
+            K.lw(builder, "$a0", "class_objTab($a0)");
+            K.jal(builder, "Object.copy");
+            // Call the initialization method
+            K.pop(builder, "$t0");
+            builder.append(K.ADDIU).append("$t0 $t0 4").append(K.SEP);
+            K.lw(builder, "t0", "class_objTab($t0)");
+            K.jr(builder, "$t0");
+        } else {
+            // Regular object creation
+            Classes.Class cls = classes.get(symbol);
+            K.lw(builder, "$a0", cls.getName() + "_protObj");
+            K.jal(builder, "Object.copy");
+            K.jal(builder, cls.getName() + "_init");
+        }
+    }
+
+    private void isvoid(IsVoid isVoid) {
+        String prefix = this.prefix + this.exprCounter++;
+        String trueLabel = prefix + "_true", endLabel = prefix + "_end";
+
+        expression(isVoid.getTarget());
+        K.branch(builder, "$a0", K.Condition.Equal, "$zero", trueLabel);
+
+        // False branch
+        K.li(builder, "$a0", literals.getName(false));
+
+        // True branch
+        K.label(builder, trueLabel);
+        K.li(builder, "$a0", literals.getName(true));
+        K.label(builder, endLabel);
+    }
+
     private void literal(Literal literal) {
         K.la(builder, "$a0", switch (literal.getType()) {
             case INTEGER -> literals.getName(Integer.parseInt(literal.getContent()));
             case STRING -> literals.getName(literal.getContent());
             case BOOLEAN -> literals.getName(Boolean.parseBoolean(literal.getContent()));
         });
+    }
+
+    // Utils
+
+    // Convert $a0 from being a int32 to address of an Int object representing the int32 value
+    private void int32ToObject() {
+        // Save int32 on stack
+        K.push(builder, "$a0");
+        // Create a new int
+        instantiation(new Instantiation(null, "Int"));
+        K.pop(builder, "$a1");
+        // Populate object's int32 attribute
+        K.sw(builder, "$a1", "12($a0)");
+        // Int address is already in $a0
     }
 }

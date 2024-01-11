@@ -32,8 +32,14 @@ class K {
     }
 
     // Instructions
+    static final String ADD   = "    add     ";
+    static final String SUB   = "    sub     ";
+    static final String MUL   = "    mul     ";
+    static final String DIV   = "    div     ";
+
     static final String JAL   = "    jal     ";
     static final String J     = "    j       ";
+    static final String JR    = "    jr      ";
 
     static final String LW    = "    lw      ";
     static final String SW    = "    sw      ";
@@ -55,6 +61,10 @@ class K {
 
     static void j(StringBuilder builder, String address) {
         builder.append(J).append(address).append(SEP);
+    }
+
+    static void jr(StringBuilder builder, String register) {
+        builder.append(JR).append(register).append(SEP);
     }
 
     static void lw(StringBuilder builder, String register, String address) {

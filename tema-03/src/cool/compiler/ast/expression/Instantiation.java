@@ -20,6 +20,10 @@ public class Instantiation extends Expression {
         return context;
     }
 
+    public String getType() {
+        return type;
+    }
+
     @Override
     protected void printTitle() {
         print("new");

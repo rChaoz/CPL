@@ -20,6 +20,10 @@ public class IsVoid extends Expression {
         return context;
     }
 
+    public Expression getTarget() {
+        return target;
+    }
+
     @Override
     protected void printTitle() {
         print("isvoid");

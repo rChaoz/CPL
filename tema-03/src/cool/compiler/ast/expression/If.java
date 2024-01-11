@@ -23,6 +23,18 @@ public class If extends Expression {
         return context;
     }
 
+    public Expression getCondition() {
+        return condition;
+    }
+
+    public Expression getThenBranch() {
+        return thenBranch;
+    }
+
+    public Expression getElseBranch() {
+        return elseBranch;
+    }
+
     @Override
     protected void printTitle() {
         print("if");
