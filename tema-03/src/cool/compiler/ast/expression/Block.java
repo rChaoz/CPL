@@ -21,6 +21,10 @@ public class Block extends Expression {
         return context;
     }
 
+    public List<Expression> getExpressions() {
+        return expressions;
+    }
+
     @Override
     protected void printTitle() {
         print("block");

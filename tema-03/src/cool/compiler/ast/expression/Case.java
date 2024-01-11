@@ -24,6 +24,14 @@ public class Case extends Expression {
         return context;
     }
 
+    public Expression getTarget() {
+        return target;
+    }
+
+    public List<CaseBranch> getBranches() {
+        return branches;
+    }
+
     @Override
     protected void printTitle() {
         print("case");

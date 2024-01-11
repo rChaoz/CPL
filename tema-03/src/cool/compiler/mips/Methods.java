@@ -24,18 +24,20 @@ public class Methods {
                 jr      $ra
             """;
 
-    public static String generateMethodBody(Classes.Class cls, Literals literals, MethodSymbol method) {
-        StringBuilder builder = new StringBuilder(cls.getName()).append('.').append(method.getName()).append(':').append(K.SEP);
+    public static String generateMethodBody(Classes.Class cls, Classes classes, Literals literals, MethodSymbol method) {
+        StringBuilder builder = new StringBuilder();
+        K.label(builder, cls.getName() + "." + method.getName());
 
         builder.append(methodBodyHead);
-        Expressions.generateMethodBody(builder, cls, literals, method);
+        Expressions.generateMethodBody(builder, cls, classes, literals, method);
         builder.append(methodBodyTail);
 
         return builder.toString();
     }
 
-    public static String generateInitMethodBody(Classes.Class cls, Literals literals) {
-        StringBuilder builder = new StringBuilder(cls.getName()).append("_init:").append(K.SEP);
+    public static String generateInitMethodBody(Classes.Class cls, Classes classes, Literals literals) {
+        StringBuilder builder = new StringBuilder();
+        K.label(builder, cls.getName() + "_init");
         builder.append(methodBodyHead);
 
         // Call parent object initializer
@@ -46,7 +48,7 @@ public class Methods {
         for (VariableSymbol attr : cls.getSymbol().getAttributeScope().asCollection()) {
             Expression initializer = attr.getInitializer();
             if (initializer == null) continue;
-            Expressions.generateAttributeBody(builder, cls, literals, initializer);
+            Expressions.generateAttributeBody(builder, cls, classes, literals, initializer);
             K.sw(builder, "$a0", attributeScope.lookup(attr.getName()).getAddress());
         }
 

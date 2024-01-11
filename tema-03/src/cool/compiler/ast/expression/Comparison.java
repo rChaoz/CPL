@@ -45,6 +45,18 @@ public class Comparison extends Expression {
         return context;
     }
 
+    public Op getOperation() {
+        return operation;
+    }
+
+    public Expression getLeft() {
+        return left;
+    }
+
+    public Expression getRight() {
+        return right;
+    }
+
     @Override
     protected void printTitle() {
         print(operation.symbol);

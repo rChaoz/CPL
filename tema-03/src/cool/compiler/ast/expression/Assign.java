@@ -22,6 +22,14 @@ public class Assign extends Expression {
         return context;
     }
 
+    public String getId() {
+        return id;
+    }
+
+    public Expression getExpression() {
+        return expression;
+    }
+
     @Override
     protected void printTitle() {
         print("<-");

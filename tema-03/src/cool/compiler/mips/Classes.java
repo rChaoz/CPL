@@ -155,6 +155,7 @@ public class Classes implements Iterable<Classes.Class> {
     public String generateCode(Literals literals) {
         StringBuilder nameTab = new StringBuilder("class_nameTab:" + K.SEP);
         StringBuilder objTab = new StringBuilder("class_objTab:" + K.SEP);
+        StringBuilder parentTab = new StringBuilder("class_parentTab:" + K.SEP);
         StringBuilder protObjects = new StringBuilder();
         StringBuilder dispTabs = new StringBuilder();
 
@@ -165,11 +166,12 @@ public class Classes implements Iterable<Classes.Class> {
             K.word(nameTab, literals.getName(cls.getName()));
             K.word(objTab, cls.getName() + "_protObj");
             K.word(objTab, cls.getName() + "_init");
+            K.word(parentTab, cls.getParent() == null ? -1 : cls.getParent().getTag());
             protObjects.append(cls.generateProtObject(literals));
             dispTabs.append(cls.generateDispTab());
         }
 
         //noinspection UnnecessaryToStringCall
-        return nameTab.toString() + objTab.toString() + protObjects.toString() + dispTabs.toString();
+        return nameTab.toString() + objTab.toString() + parentTab.toString() + protObjects.toString() + dispTabs.toString();
     }
 }

@@ -378,11 +378,11 @@ public class Compiler {
         System.out.print(literals.generateCode());
         System.out.print(c.generateCode(literals));
         System.out.print(heapStart);
-        for (var cls : c) System.out.print(Methods.generateInitMethodBody(cls, literals));
+        for (var cls : c) System.out.print(Methods.generateInitMethodBody(cls, c, literals));
         for (var cls : c) {
             if (cls.isBaseClass()) continue;
             for (var method : cls.getSymbol().getMethodScope().asCollection())
-                System.out.print(Methods.generateMethodBody(cls, literals, method));
+                System.out.print(Methods.generateMethodBody(cls, c, literals, method));
         }
     }
 }

@@ -54,7 +54,7 @@ public class Literals {
         for (var entry : stringLiterals.entrySet()) {
             String str = entry.getKey();
 
-            builder.append("str_const").append(entry.getValue()).append(':').append(K.SEP);
+            K.label(builder, "str_const" + entry.getValue());
             K.word(builder, stringCls.getTag());
             K.word(builder, 4 + (str.length() + 4) / 4);
             K.word(builder, stringCls.getDispTab());
@@ -103,7 +103,7 @@ public class Literals {
         for (var entry : intLiterals.entrySet()) {
             Integer i = entry.getKey();
 
-            builder.append("int_const").append(entry.getValue()).append(':').append(K.SEP);
+            K.label(builder, "int_const" + entry.getValue());
             K.word(builder, 2);
             K.word(builder, 4);
             K.word(builder, intCls.getDispTab());
@@ -114,7 +114,7 @@ public class Literals {
         for (var entry : booleanLiterals.entrySet()) {
             Boolean b = entry.getKey();
 
-            builder.append("bool_const").append(entry.getValue()).append(':').append(K.SEP);
+            K.label(builder, "bool_const" + entry.getValue());
             K.word(builder, 4);
             K.word(builder, 4);
             K.word(builder, boolCls.getDispTab());
