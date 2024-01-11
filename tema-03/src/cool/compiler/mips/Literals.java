@@ -124,15 +124,15 @@ public class Literals {
         return builder.toString();
     }
 
-    public String getName(int literal) {
+    public String getLabel(int literal) {
         return "int_const" + intLiterals.get(literal);
     }
 
-    public String getName(String literal) {
+    public String getLabel(String literal) {
         return "str_const" + stringLiterals.get(literal);
     }
 
-    public String getName(boolean literal) {
+    public String getLabel(boolean literal) {
         return "bool_const" + booleanLiterals.get(literal);
     }
 }

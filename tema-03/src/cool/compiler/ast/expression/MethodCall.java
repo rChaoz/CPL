@@ -26,6 +26,18 @@ public class MethodCall extends Expression {
         return context;
     }
 
+    public Expression getTargetObject() {
+        return targetObject;
+    }
+
+    public String getTargetType() {
+        return targetType;
+    }
+
+    public String getName() {
+        return name;
+    }
+
     @Override
     protected void printTitle() {
         print(".");

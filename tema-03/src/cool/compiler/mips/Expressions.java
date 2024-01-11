@@ -47,6 +47,7 @@ public class Expressions {
     private final Classes classes;
     private final Literals literals;
     private final Scope<AddressSymbol> mainScope;
+    private Scope<AddressSymbol> currentScope;
     private int exprCounter = 0, localIndex = 0;
 
     public Expressions(StringBuilder builder, String prefix, Classes classes, Literals literals, Scope<AddressSymbol> mainScope) {
@@ -55,6 +56,7 @@ public class Expressions {
         this.classes = classes;
         this.literals = literals;
         this.mainScope = mainScope;
+        this.currentScope = mainScope;
     }
 
     private void expression(Expression expr) {
@@ -67,7 +69,7 @@ public class Expressions {
         else if (expr instanceof If) iff((If) expr);
         else if (expr instanceof Instantiation) instantiation((Instantiation) expr);
         else if (expr instanceof IsVoid) isvoid((IsVoid) expr);
-        else if (expr instanceof Let);
+        else if (expr instanceof Let) let((Let) expr);
         else if (expr instanceof Literal) literal((Literal) expr);
         else if (expr instanceof MethodCall);
         else if (expr instanceof SelfMethodCall);
@@ -103,7 +105,7 @@ public class Expressions {
 
     private void assign(Assign assign) {
         expression(assign.getExpression());
-        K.sw(builder, "$a0", mainScope.lookup(assign.getId()).getAddress());
+        K.sw(builder, "$a0", currentScope.lookup(assign.getId()).getAddress());
     }
 
     private void block(Block block) {
@@ -166,7 +168,7 @@ public class Expressions {
             // We have expression result in $a0
             // We want to move it to a variable (onto the stack) with the name the chosen branch expects
             var branchVariable = new AddressSymbol(branch.getId(), localIndex++, AddressSymbol.Type.LOCAL);
-            Scope<AddressSymbol> branchScope = K.allocScope(builder, mainScope, List.of(branchVariable));
+            Scope<AddressSymbol> branchScope = K.allocScope(builder, currentScope, List.of(branchVariable));
             K.sw(builder, "$a0", branchVariable.getAddress());
 
             expression(branch.getBody());
@@ -224,8 +226,8 @@ public class Expressions {
             // Check reference equality
             K.branch(builder, "$t1", K.Condition.Equal, "$t2", trueLabel);
             // Then, call build-in equality test
-            K.li(builder, "$a0", literals.getName(true));
-            K.li(builder, "$a1", literals.getName(false));
+            K.li(builder, "$a0", literals.getLabel(true));
+            K.li(builder, "$a1", literals.getLabel(false));
             K.jal(builder, "equality_test");
         } else {
             // Extract int32 values from objects
@@ -238,17 +240,18 @@ public class Expressions {
                 case EQUAL -> throw new RuntimeException("impossible");
             }, "$t2", trueLabel);
             // If jump was not made, then condition is false
-            K.li(builder, "$a0", literals.getName(false));
+            K.li(builder, "$a0", literals.getLabel(false));
             K.j(builder, endLabel);
         }
 
         // Common labels
         K.label(builder, trueLabel);
-        K.li(builder, "$a0", literals.getName(true));
+        K.li(builder, "$a0", literals.getLabel(true));
         K.label(builder, endLabel);
     }
 
     private void complement(Complement complement) {
+        expression(complement.getOperand());
         // Extract int32 value from int
         K.lw(builder, "$a0", "12($a0)");
         // Calculate complement
@@ -311,20 +314,50 @@ public class Expressions {
         K.branch(builder, "$a0", K.Condition.Equal, "$zero", trueLabel);
 
         // False branch
-        K.li(builder, "$a0", literals.getName(false));
+        K.li(builder, "$a0", literals.getLabel(false));
 
         // True branch
         K.label(builder, trueLabel);
-        K.li(builder, "$a0", literals.getName(true));
+        K.li(builder, "$a0", literals.getLabel(true));
         K.label(builder, endLabel);
     }
 
     private void literal(Literal literal) {
         K.la(builder, "$a0", switch (literal.getType()) {
-            case INTEGER -> literals.getName(Integer.parseInt(literal.getContent()));
-            case STRING -> literals.getName(literal.getContent());
-            case BOOLEAN -> literals.getName(Boolean.parseBoolean(literal.getContent()));
+            case INTEGER -> literals.getLabel(Integer.parseInt(literal.getContent()));
+            case STRING -> literals.getLabel(literal.getContent());
+            case BOOLEAN -> literals.getLabel(Boolean.parseBoolean(literal.getContent()));
         });
+    }
+
+    private void let(Let let) {
+        var initialScope = currentScope;
+
+        // Allocate variables 1 by 1 as variables can depend on previous ones
+        for (var local : let.getLocals()) {
+            var localVariable = new AddressSymbol(local.getId(), localIndex++, AddressSymbol.Type.LOCAL);
+            var type = SymbolTable.lookupClass(local.getType());
+            currentScope = K.allocScope(builder, currentScope, List.of(localVariable));
+            if (local.getInitializer() != null) {
+                expression(local.getInitializer());
+                K.sw(builder, "$a0", localVariable.getAddress());
+            } else if (type == SymbolTable.Int) K.sw(builder, "$a0", literals.getLabel(0));
+            else if (type == SymbolTable.String) K.sw(builder, "$a0", literals.getLabel(""));
+            else if (type == SymbolTable.Bool) K.sw(builder, "$a0", literals.getLabel(false));
+            else K.sw(builder, "$a0", "$zero");
+        }
+
+        // Execute the let body
+        expression(let.getBody());
+
+        // Restore the stack
+        for (var ignored: let.getLocals()) currentScope = K.freeScope(builder, currentScope);
+
+        if (currentScope != initialScope) throw new RuntimeException("impossible");
+    }
+
+    private void methodCall(MethodCall call) {
+
     }
 
     // Utils

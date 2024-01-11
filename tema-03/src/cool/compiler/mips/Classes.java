@@ -56,9 +56,9 @@ public class Classes implements Iterable<Classes.Class> {
         }
 
         public String generateProtObject(Literals literals) {
-            String defaultString = literals.getName("");
-            String defaultInt = literals.getName(0);
-            String defaultBool = literals.getName(false);
+            String defaultString = literals.getLabel("");
+            String defaultInt = literals.getLabel(0);
+            String defaultBool = literals.getLabel(false);
 
             // Deal with basic classes as our general code can't handle the special attributes of these classes
             // (ASCII, int32)
@@ -66,7 +66,7 @@ public class Classes implements Iterable<Classes.Class> {
                     "    .word   " + tag + "\n" +
                     "    .word   5\n" +
                     "    .word   String_dispTab\n" +
-                    "    .word   " + literals.getName(0) + "\n" +
+                    "    .word   " + literals.getLabel(0) + "\n" +
                     "    .asciiz \"\"\n" +
                     "    .align 2\n";
             else if (symbol == SymbolTable.Int) return "Int_protObj:\n" +
@@ -163,7 +163,7 @@ public class Classes implements Iterable<Classes.Class> {
         sorted.sort(null);
 
         for (var cls : sorted) {
-            K.word(nameTab, literals.getName(cls.getName()));
+            K.word(nameTab, literals.getLabel(cls.getName()));
             K.word(objTab, cls.getName() + "_protObj");
             K.word(objTab, cls.getName() + "_init");
             K.word(parentTab, cls.getParent() == null ? -1 : cls.getParent().getTag());

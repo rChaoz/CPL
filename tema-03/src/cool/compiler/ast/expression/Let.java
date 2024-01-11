@@ -21,6 +21,14 @@ public class Let extends Expression {
         return context;
     }
 
+    public List<LetLocal> getLocals() {
+        return locals;
+    }
+
+    public Expression getBody() {
+        return body;
+    }
+
     @Override
     protected void printTitle() {
         print("let");

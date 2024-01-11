@@ -2,10 +2,7 @@ package cool.compiler.ast.expression;
 
 import cool.compiler.ast.ASTNode;
 import cool.parser.CoolParser;
-import cool.structures.DefaultScope;
-import cool.structures.Scope;
-import cool.structures.SymbolTable;
-import cool.structures.VariableSymbol;
+import cool.structures.*;
 
 public class CaseBranch extends ASTNode {
     private final CoolParser.Case_branchContext context;
@@ -38,14 +35,17 @@ public class CaseBranch extends ASTNode {
     }
 
     public void checkTypes(Scope<VariableSymbol> scope) {
+        ClassSymbol classType = SymbolTable.lookupClass(type);
+
         if (id.equals("self"))
             SymbolTable.error(this, context.ID().getSymbol(), "Case variable has illegal name self");
         else if (type.equals("SELF_TYPE"))
             SymbolTable.error(this, context.TYPE().getSymbol(), "Case variable %s has illegal type SELF_TYPE".formatted(id));
-        else if (SymbolTable.lookupClass(type) == null)
+        else if (classType == null)
             SymbolTable.error(this, context.TYPE().getSymbol(), "Case variable %s has undefined type %s".formatted(id, type));
-        var branchScope = new DefaultScope<>(scope);
-        branchScope.add(new VariableSymbol(id, SymbolTable.lookupClass(type)));
+
+        Scope<VariableSymbol> branchScope = new DefaultScope<>(scope);
+        branchScope.add(new VariableSymbol(id, classType, null));
         body.checkTypes(branchScope);
     }
 
