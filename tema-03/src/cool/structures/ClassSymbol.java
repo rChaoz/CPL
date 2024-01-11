@@ -59,7 +59,7 @@ public class ClassSymbol extends Symbol {
         // Handle SELF_TYPE
         if (first == second) return first;
         if (first == SymbolTable.SelfType) first = scope.getCurrentClass();
-        else if (second == SymbolTable.SelfType) first = scope.getCurrentClass();
+        else if (second == SymbolTable.SelfType) second = scope.getCurrentClass();
         // Find common ancestor
         while (!first.isSuperTypeOf(second)) first = first.parent;
         return first;

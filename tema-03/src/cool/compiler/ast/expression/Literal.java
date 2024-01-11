@@ -42,17 +42,12 @@ public class Literal extends Expression {
     @Override
     protected void printChildren() {
     }
-
     @Override
-    public ClassSymbol getExpressionType(Scope<VariableSymbol> scope) {
+    public ClassSymbol checkAndComputeType(Scope<VariableSymbol> scope) {
         return switch (type) {
             case INTEGER -> SymbolTable.Int;
             case STRING -> SymbolTable.String;
             case BOOLEAN -> SymbolTable.Bool;
         };
-    }
-
-    @Override
-    public void checkTypes(Scope<VariableSymbol> scope) {
     }
 }

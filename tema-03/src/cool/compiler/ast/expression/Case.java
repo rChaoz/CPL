@@ -44,18 +44,12 @@ public class Case extends Expression {
     }
 
     @Override
-    public ClassSymbol getExpressionType(Scope<VariableSymbol> scope) {
+    public ClassSymbol checkAndComputeType(Scope<VariableSymbol> scope) {
         var branchTypes = new ArrayList<ClassSymbol>(branches.size());
         for (var branch : branches) {
-            if (branch.getId().equals("self")) continue;
-            var branchType = branch.getBody().getExpressionType(scope);
+            var branchType = branch.checkAndComputeType(scope);
             if (branchType != null) branchTypes.add(branchType);
         }
         return ClassSymbol.joinTypes(branchTypes, scope);
-    }
-
-    @Override
-    public void checkTypes(Scope<VariableSymbol> scope) {
-        for (var branch : branches) branch.checkTypes(scope);
     }
 }

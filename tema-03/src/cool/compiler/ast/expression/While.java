@@ -34,14 +34,9 @@ public class While extends Expression {
     }
 
     @Override
-    public ClassSymbol getExpressionType(Scope<VariableSymbol> scope) {
-        return SymbolTable.Object;
-    }
-
-    @Override
-    public void checkTypes(Scope<VariableSymbol> scope) {
+    public ClassSymbol checkAndComputeType(Scope<VariableSymbol> scope) {
         ensureConditionBool(scope, condition, "While", context.cond.start);
-        condition.checkTypes(scope);
-        body.checkTypes(scope);
+        body.getExpressionType(scope);
+        return SymbolTable.Object;
     }
 }

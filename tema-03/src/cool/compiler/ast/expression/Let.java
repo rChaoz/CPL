@@ -1,7 +1,10 @@
 package cool.compiler.ast.expression;
 
 import cool.parser.CoolParser;
-import cool.structures.*;
+import cool.structures.ClassSymbol;
+import cool.structures.DefaultScope;
+import cool.structures.Scope;
+import cool.structures.VariableSymbol;
 
 import java.util.List;
 
@@ -40,27 +43,14 @@ public class Let extends Expression {
         print(body);
     }
 
-    private static Scope<VariableSymbol> createLocalScope(Scope<VariableSymbol> scope, LetLocal local) {
-        if (local.getId().equals("self")) return scope;
-
-        ClassSymbol localType = SymbolTable.lookupClass(local.getType());
-        var newScope = new DefaultScope<>(scope);
-        newScope.add(new VariableSymbol(local.getId(), localType, local.getInitializer()));
-        return newScope;
-    }
-
     @Override
-    public ClassSymbol getExpressionType(Scope<VariableSymbol> scope) {
-        for (var local : locals) scope = createLocalScope(scope, local);
-        return body.getExpressionType(scope);
-    }
-
-    @Override
-    public void checkTypes(Scope<VariableSymbol> scope) {
+    public ClassSymbol checkAndComputeType(Scope<VariableSymbol> scope) {
+        var letScope = new DefaultScope<>(scope);
         for (var local : locals) {
-            local.checkTypes(scope);
-            scope = createLocalScope(scope, local);
+            ClassSymbol localType = local.checkAndComputeType(letScope);
+            if (local.getId().equals("self")) continue;
+            letScope.add(new VariableSymbol(local.getId(), localType, local.getInitializer()));
         }
-        body.checkTypes(scope);
+        return body.getExpressionType(letScope);
     }
 }

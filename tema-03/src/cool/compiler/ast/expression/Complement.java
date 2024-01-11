@@ -35,13 +35,9 @@ public class Complement extends Expression {
     }
 
     @Override
-    public ClassSymbol getExpressionType(Scope<VariableSymbol> scope) {
-        return SymbolTable.Int;
-    }
-
-    @Override
-    public void checkTypes(Scope<VariableSymbol> scope) {
+    public ClassSymbol checkAndComputeType(Scope<VariableSymbol> scope) {
         ensureOperandInt(scope, operand, "~", context.expr().start);
-        operand.checkTypes(scope);
+        operand.getExpressionType(scope);
+        return SymbolTable.Int;
     }
 }

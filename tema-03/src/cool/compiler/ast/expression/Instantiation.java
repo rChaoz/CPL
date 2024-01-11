@@ -34,15 +34,17 @@ public class Instantiation extends Expression {
         print(type);
     }
 
-    @Override
-    public ClassSymbol getExpressionType(Scope<VariableSymbol> scope) {
-        return SymbolTable.lookupClass(type);
-    }
+    private ClassSymbol classType;
 
     @Override
-    public void checkTypes(Scope<VariableSymbol> scope) {
-        if (SymbolTable.lookupClass(type) == null)
-            SymbolTable.error(this, context.TYPE().getSymbol(),
-                    "new is used with undefined type %s".formatted(this.type));
+    public ClassSymbol checkAndComputeType(Scope<VariableSymbol> scope) {
+        classType = SymbolTable.lookupClass(this.type);
+        if (classType == null)
+            SymbolTable.error(this, context.TYPE().getSymbol(), "new is used with undefined type %s".formatted(this.type));
+        return classType;
+    }
+
+    public ClassSymbol getClassType() {
+        return classType;
     }
 }

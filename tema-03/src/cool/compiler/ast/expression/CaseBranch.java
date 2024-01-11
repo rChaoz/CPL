@@ -34,19 +34,29 @@ public class CaseBranch extends ASTNode {
         return body;
     }
 
-    public void checkTypes(Scope<VariableSymbol> scope) {
-        ClassSymbol classType = SymbolTable.lookupClass(type);
+    private ClassSymbol classType;
 
-        if (id.equals("self"))
+    public ClassSymbol checkAndComputeType(Scope<VariableSymbol> scope) {
+        if (id.equals("self")) {
             SymbolTable.error(this, context.ID().getSymbol(), "Case variable has illegal name self");
-        else if (type.equals("SELF_TYPE"))
+            return null;
+        }
+
+        classType = SymbolTable.lookupClass(type);
+
+        if (classType == SymbolTable.SelfType) {
             SymbolTable.error(this, context.TYPE().getSymbol(), "Case variable %s has illegal type SELF_TYPE".formatted(id));
-        else if (classType == null)
+            classType = null;
+        } else if (classType == null)
             SymbolTable.error(this, context.TYPE().getSymbol(), "Case variable %s has undefined type %s".formatted(id, type));
 
         Scope<VariableSymbol> branchScope = new DefaultScope<>(scope);
         branchScope.add(new VariableSymbol(id, classType, null));
-        body.checkTypes(branchScope);
+        return body.getExpressionType(branchScope);
+    }
+
+    public ClassSymbol getClassType() {
+        return classType;
     }
 
     @Override

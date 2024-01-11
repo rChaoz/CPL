@@ -52,27 +52,9 @@ public class MethodCall extends Expression {
     }
 
     @Override
-    public ClassSymbol getExpressionType(Scope<VariableSymbol> scope) {
-        MethodSymbol method;
-        // Resolve method
-        ClassSymbol cls = targetObject.getExpressionType(scope), targetCls;
-        if (cls == null) return null;
-
-        if (targetType != null) targetCls = SymbolTable.lookupClass(targetType);
-        else targetCls = cls == SymbolTable.SelfType ? scope.getCurrentClass() : cls;
-
-        if (targetCls == null) return null;
-        method = targetCls.getMethodScope().lookup(name);
-
-        if (method == null) return null;
-        return method.getReturnType(cls);
-    }
-
-    @Override
-    public void checkTypes(Scope<VariableSymbol> scope) {
-        targetObject.checkTypes(scope);
+    public ClassSymbol checkAndComputeType(Scope<VariableSymbol> scope) {
         ClassSymbol cls = targetObject.getExpressionType(scope);
-        if (cls == null) return;
+        if (cls == null) return null;
 
         // Resolve method
         ClassSymbol targetCls;
@@ -81,47 +63,50 @@ public class MethodCall extends Expression {
             if (targetType.equals("SELF_TYPE")) {
                 SymbolTable.error(this, context.TYPE().getSymbol(),
                         "Type of static dispatch cannot be SELF_TYPE");
-                return;
+                return null;
             }
             targetCls = SymbolTable.lookupClass(targetType);
             if (targetCls == null) {
                 SymbolTable.error(this, context.TYPE().getSymbol(),
                         "Type %s of static dispatch is undefined".formatted(targetType));
-                return;
-            } else if (!cls.canBeAssignedTo(targetCls, scope.getCurrentClass())) {
+                return null;
+            } else if (!targetCls.isSuperTypeOf(cls)) {
                 SymbolTable.error(this, context.TYPE().getSymbol(),
                         "Type %s of static dispatch is not a superclass of type %s".formatted(targetType, cls.getName()));
-                return;
+                return null;
             }
         } else {
             // Dynamic dispatch
             targetCls = cls == SymbolTable.SelfType ? scope.getCurrentClass() : cls;
         }
 
-        checkMethodCall(scope, targetCls, name, arguments, this, context.ID().getSymbol());
+        return checkMethodCall(scope, targetCls, cls, name, arguments, this, context.ID().getSymbol());
     }
 
-    static void checkMethodCall(Scope<VariableSymbol> scope, ClassSymbol cls, String name, List<Expression> arguments, ASTNode node, Token token) {
-        for (var arg : arguments) arg.checkTypes(scope);
+    static ClassSymbol checkMethodCall(Scope<VariableSymbol> scope, ClassSymbol methodClass, ClassSymbol objectClass,
+                                       String name, List<Expression> arguments, ASTNode node, Token token) {
+        for (var arg : arguments) arg.getExpressionType(scope);
 
-        MethodSymbol method = cls.getMethodScope().lookup(name);
-        if (method == null)
-            SymbolTable.error(node, token, "Undefined method %s in class %s".formatted(name, cls.getName()));
-        else if (method.getFormals().size() != arguments.size())
-            SymbolTable.error(node, token, "Method %s of class %s is applied to wrong number of arguments".formatted(name, cls.getName()));
-        else {
-            // Check types of all formals
-            for (int i = 0; i < arguments.size(); ++i) {
-                var arg = arguments.get(i);
-                var formal = method.getFormals().get(i);
-                ClassSymbol argType = arg.getExpressionType(scope);
-                ClassSymbol formalType = formal.getType();
-                if (argType == null || formalType == null) continue;
-                if (!argType.canBeAssignedTo(formalType, scope.getCurrentClass()))
-                    SymbolTable.error(node, arg.getContext().start,
-                            "In call to method %s of class %s, actual type %s of formal parameter %s is incompatible with declared type %s"
-                                    .formatted(name, cls.getName(), argType.getName(), formal.getName(), formalType.getName()));
-            }
+        MethodSymbol method = methodClass.getMethodScope().lookup(name);
+        if (method == null) {
+            SymbolTable.error(node, token, "Undefined method %s in class %s".formatted(name, methodClass.getName()));
+            return null;
         }
+        if (method.getFormals().size() != arguments.size())
+            SymbolTable.error(node, token, "Method %s of class %s is applied to wrong number of arguments".formatted(name, methodClass.getName()));
+        // Check types of all formals
+        for (int i = 0; i < arguments.size(); ++i) {
+            var arg = arguments.get(i);
+            var formal = method.getFormals().get(i);
+            ClassSymbol argType = arg.getExpressionType(scope);
+            ClassSymbol formalType = formal.getType();
+            if (argType == null || formalType == null) continue;
+            if (!argType.canBeAssignedTo(formalType, scope.getCurrentClass()))
+                SymbolTable.error(node, arg.getContext().start,
+                        "In call to method %s of class %s, actual type %s of formal parameter %s is incompatible with declared type %s"
+                                .formatted(name, methodClass.getName(), argType.getName(), formal.getName(), formalType.getName()));
+        }
+        if (objectClass == null) return method.getReturnType();
+        else return method.getReturnType(objectClass);
     }
 }

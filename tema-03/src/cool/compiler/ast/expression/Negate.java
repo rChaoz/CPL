@@ -31,16 +31,10 @@ public class Negate extends Expression {
     }
 
     @Override
-    public ClassSymbol getExpressionType(Scope<VariableSymbol> scope) {
-        return SymbolTable.Bool;
-    }
-
-    @Override
-    public void checkTypes(Scope<VariableSymbol> scope) {
+    public ClassSymbol checkAndComputeType(Scope<VariableSymbol> scope) {
         ClassSymbol type = target.getExpressionType(scope);
         if (type != null && type != SymbolTable.Bool)
-            SymbolTable.error(this, context.expr().start,
-                    "Operand of not has type %s instead of Bool".formatted(type.getName()));
-        target.checkTypes(scope);
+            SymbolTable.error(this, context.expr().start, "Operand of not has type %s instead of Bool".formatted(type.getName()));
+        return SymbolTable.Bool;
     }
 }

@@ -35,13 +35,7 @@ public class SelfMethodCall extends Expression {
     }
 
     @Override
-    public ClassSymbol getExpressionType(Scope<VariableSymbol> scope) {
-        var method = scope.getCurrentClass().getMethodScope().lookup(name);
-        return method == null ? null : method.getReturnType();
-    }
-
-    @Override
-    public void checkTypes(Scope<VariableSymbol> scope) {
-        MethodCall.checkMethodCall(scope, scope.getCurrentClass(), name, arguments, this, context.ID().getSymbol());
+    public ClassSymbol checkAndComputeType(Scope<VariableSymbol> scope) {
+        return MethodCall.checkMethodCall(scope, scope.getCurrentClass(), null, name, arguments, this, context.ID().getSymbol());
     }
 }

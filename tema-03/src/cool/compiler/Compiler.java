@@ -334,7 +334,6 @@ public class Compiler {
                 // Check types
                 var declaredType = attrSymbol.getType();
                 var expressionType = attribute.getInitializer().getExpressionType(scope);
-                attribute.getInitializer().checkTypes(scope);
                 if (expressionType == null || declaredType == null) continue;
                 if (!expressionType.canBeAssignedTo(declaredType, classSymbol))
                     SymbolTable.error(attribute, attribute.getContext().expr().start,
@@ -350,7 +349,6 @@ public class Compiler {
                 if (methodSymbol == null) continue;
                 // Type-check the method body
                 var scope = methodSymbol.getMethodScope();
-                method.getBody().checkTypes(scope);
                 // Check return type
                 var declaredType = methodSymbol.getReturnType();
                 var expressionType = method.getBody().getExpressionType(scope);

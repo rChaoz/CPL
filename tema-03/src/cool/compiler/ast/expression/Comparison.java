@@ -69,13 +69,7 @@ public class Comparison extends Expression {
     }
 
     @Override
-    public ClassSymbol getExpressionType(Scope<VariableSymbol> scope) {
-        return SymbolTable.Bool;
-    }
-
-    @Override
-    public void checkTypes(Scope<VariableSymbol> scope) {
-        left.checkTypes(scope);
+    public ClassSymbol checkAndComputeType(Scope<VariableSymbol> scope) {
         if (operation != Op.EQUAL) {
             ensureOperandInt(scope, left, operation.symbol, context.left.start);
             ensureOperandInt(scope, right, operation.symbol, context.right.start);
@@ -87,6 +81,6 @@ public class Comparison extends Expression {
                 SymbolTable.error(this, context.op, "Cannot compare %s with %s".formatted(leftType.getName(), rightType.getName()));
             }
         }
-        right.checkTypes(scope);
+        return SymbolTable.Bool;
     }
 }

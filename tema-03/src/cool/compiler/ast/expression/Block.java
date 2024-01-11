@@ -36,12 +36,8 @@ public class Block extends Expression {
     }
 
     @Override
-    public ClassSymbol getExpressionType(Scope<VariableSymbol> scope) {
+    public ClassSymbol checkAndComputeType(Scope<VariableSymbol> scope) {
+        for (var expr : expressions) expr.getExpressionType(scope);
         return expressions.get(expressions.size() - 1).getExpressionType(scope);
-    }
-
-    @Override
-    public void checkTypes(Scope<VariableSymbol> scope) {
-        for (var expr : expressions) expr.checkTypes(scope);
     }
 }

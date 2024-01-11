@@ -48,18 +48,11 @@ public class If extends Expression {
     }
 
     @Override
-    public ClassSymbol getExpressionType(Scope<VariableSymbol> scope) {
+    public ClassSymbol checkAndComputeType(Scope<VariableSymbol> scope) {
+        ensureConditionBool(scope, condition, "If", context.cond.start);
         var thenType = thenBranch.getExpressionType(scope);
         var elseType = elseBranch.getExpressionType(scope);
         if (thenType == null || elseType == null) return null;
         return ClassSymbol.joinTypes(thenType, elseType, scope);
-    }
-
-    @Override
-    public void checkTypes(Scope<VariableSymbol> scope) {
-        ensureConditionBool(scope, condition, "If", context.cond.start);
-        condition.checkTypes(scope);
-        thenBranch.checkTypes(scope);
-        elseBranch.checkTypes(scope);
     }
 }

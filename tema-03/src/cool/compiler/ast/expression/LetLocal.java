@@ -49,28 +49,31 @@ public class LetLocal extends ASTNode {
         if (initializer != null) print(initializer);
     }
 
-    public void checkTypes(Scope<VariableSymbol> scope) {
+    private ClassSymbol declaredType;
+
+    public ClassSymbol checkAndComputeType(Scope<VariableSymbol> scope) {
         if (id.equals("self")) {
             SymbolTable.error(this, context.ID().getSymbol(), "Let variable has illegal name self");
-            return;
+            return null;
         }
 
-        ClassSymbol declaredType = SymbolTable.lookupClass(type);
+        declaredType = SymbolTable.lookupClass(type);
 
-        if (declaredType == null) {
-            SymbolTable.error(this, context.TYPE().getSymbol(),
-                    "Let variable %s has undefined type %s".formatted(id, type));
-        }
+        if (declaredType == null)
+            SymbolTable.error(this, context.TYPE().getSymbol(), "Let variable %s has undefined type %s".formatted(id, type));
 
-        if (initializer == null) return;
-        initializer.checkTypes(scope);
-
+        if (initializer == null) return declaredType;
         ClassSymbol expressionType = initializer.getExpressionType(scope);
-        if (declaredType == null || expressionType == null) return;
+        if (declaredType == null || expressionType == null) return declaredType;
 
         if (!expressionType.canBeAssignedTo(declaredType, scope.getCurrentClass()))
             SymbolTable.error(this, context.expr().start,
                     "Type %s of initialization expression of identifier %s is incompatible with declared type %s"
                             .formatted(expressionType.getName(), id, declaredType.getName()));
+        return declaredType;
+    }
+
+    public ClassSymbol getDeclaredType() {
+        return declaredType;
     }
 }

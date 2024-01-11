@@ -8,9 +8,18 @@ import cool.structures.VariableSymbol;
 import org.antlr.v4.runtime.Token;
 
 public abstract class Expression extends ASTNode {
-    public abstract ClassSymbol getExpressionType(Scope<VariableSymbol> scope);
+    private boolean typeComputed = false;
+    private ClassSymbol expressionType = null;
 
-    public abstract void checkTypes(Scope<VariableSymbol> scope);
+    protected abstract ClassSymbol checkAndComputeType(Scope<VariableSymbol> scope);
+
+    public ClassSymbol getExpressionType(Scope<VariableSymbol> scope) {
+        if (!typeComputed) {
+            expressionType = checkAndComputeType(scope);
+            typeComputed = true;
+        }
+        return expressionType;
+    }
 
     protected void ensureOperandInt(Scope<VariableSymbol> scope, Expression operand, String operation, Token token) {
         ClassSymbol type = operand.getExpressionType(scope);

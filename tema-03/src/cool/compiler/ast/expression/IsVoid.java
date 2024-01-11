@@ -35,12 +35,8 @@ public class IsVoid extends Expression {
     }
 
     @Override
-    public ClassSymbol getExpressionType(Scope<VariableSymbol> scope) {
+    public ClassSymbol checkAndComputeType(Scope<VariableSymbol> scope) {
+        target.getExpressionType(scope);
         return SymbolTable.Bool;
-    }
-
-    @Override
-    public void checkTypes(Scope<VariableSymbol> scope) {
-        target.checkTypes(scope);
     }
 }

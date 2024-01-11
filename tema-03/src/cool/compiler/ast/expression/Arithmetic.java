@@ -70,15 +70,11 @@ public class Arithmetic extends Expression {
     }
 
     @Override
-    public ClassSymbol getExpressionType(Scope<VariableSymbol> scope) {
-        return SymbolTable.Int;
-    }
-
-    @Override
-    public void checkTypes(Scope<VariableSymbol> scope) {
-        left.checkTypes(scope);
+    protected ClassSymbol checkAndComputeType(Scope<VariableSymbol> scope) {
+        left.getExpressionType(scope);
         ensureOperandInt(scope, left, operation.symbol, context.left.start);
         ensureOperandInt(scope, right, operation.symbol, context.right.start);
-        right.checkTypes(scope);
+        right.getExpressionType(scope);
+        return SymbolTable.Int;
     }
 }

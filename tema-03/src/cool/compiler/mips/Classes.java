@@ -5,10 +5,7 @@ import cool.structures.MethodSymbol;
 import cool.structures.SymbolTable;
 import cool.structures.VariableSymbol;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 public class Classes implements Iterable<Classes.Class> {
     public static class Class implements Comparable<Class> {
@@ -18,12 +15,21 @@ public class Classes implements Iterable<Classes.Class> {
         private final String dispTab;
         private final boolean isBaseClass;
 
+        Map<String, String> methodNameMap = new LinkedHashMap<>();
+        Map<String, Integer> methodIdMap = new LinkedHashMap<>();
+
         private Class(int tag, ClassSymbol symbol, Class parent, boolean isBaseClass) {
             this.tag = tag;
             this.symbol = symbol;
             this.parent = parent;
             this.dispTab = symbol.getName() + "_dispTab";
             this.isBaseClass = isBaseClass;
+
+            for (MethodSymbol method : symbol.getMethodScope())
+                methodNameMap.put(method.getName(), method.getOwnerClass().getName() + "." + method.getName());
+
+            int index = 0;
+            for (var entry : methodNameMap.entrySet()) methodIdMap.put(entry.getKey(), index++);
         }
 
         public String getName() {
@@ -102,11 +108,12 @@ public class Classes implements Iterable<Classes.Class> {
 
         public String generateDispTab() {
             StringBuilder builder = new StringBuilder(getName()).append("_dispTab:").append(K.SEP);
-
-            for (MethodSymbol method : symbol.getMethodScope())
-                K.word(builder, method.getOwnerClass().getName() + "." + method.getName());
-
+            for (String method : methodNameMap.values()) K.word(builder, method);
             return builder.toString();
+        }
+
+        public int getMethodId(String methodName) {
+            return methodIdMap.get(methodName);
         }
     }
 
