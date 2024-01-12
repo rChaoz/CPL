@@ -76,8 +76,8 @@ public class Expressions {
         else if (expr instanceof Literal) literal((Literal) expr);
         else if (expr instanceof MethodCall) methodCall((MethodCall) expr);
         else if (expr instanceof SelfMethodCall) selfMethodCall((SelfMethodCall) expr);
-        else if (expr instanceof Variable);
-        else if (expr instanceof While);
+        else if (expr instanceof Variable) variable((Variable) expr);
+        else if (expr instanceof While) whilee((While) expr);
         else throw new RuntimeException("Unknown expression " + expr.getClass().getCanonicalName() + ": " + expr);
     }
 
@@ -396,6 +396,29 @@ public class Expressions {
         // Free up the stack
         K.pop(builder, 4 * (arguments.size() + 1));
         localIndex -= arguments.size() + 1;
+    }
+
+    private void variable(Variable variable) {
+        K.lw(builder, "$a0", mainScope.lookup(variable.getId()).getAddress());
+    }
+
+    private void whilee(While whilee) {
+        String prefix = this.prefix + this.exprCounter++;
+        String startLabel = prefix + "_start", endLabel = prefix + "_end";
+        K.label(builder, startLabel);
+
+        expression(whilee.getCondition());
+        // If condition is false, jump to end
+        K.lw(builder, "$a0", "12($a0)");
+        K.branch(builder, "$a0", K.Condition.Equal, "$zero", endLabel);
+        // Else, evaluate the body
+        expression(whilee.getBody());
+        // And loop back to condition testing
+        K.j(builder, startLabel);
+
+        K.label(builder, endLabel);
+        // While always returns void
+        K.li(builder, "$a0", 0);
     }
 
     // Utils

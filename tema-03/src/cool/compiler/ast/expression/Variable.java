@@ -20,6 +20,10 @@ public class Variable extends Expression {
         return context;
     }
 
+    public String getId() {
+        return id;
+    }
+
     @Override
     protected void printTitle() {
         print(id);

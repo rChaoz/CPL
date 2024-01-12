@@ -22,6 +22,14 @@ public class While extends Expression {
         return context;
     }
 
+    public Expression getCondition() {
+        return condition;
+    }
+
+    public Expression getBody() {
+        return body;
+    }
+
     @Override
     protected void printTitle() {
         print("while");

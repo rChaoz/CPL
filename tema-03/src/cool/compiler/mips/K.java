@@ -7,8 +7,6 @@ import java.util.List;
 
 class K {
     // Basic
-
-    static final String TAB    = "    ";
     static final String SEP = System.lineSeparator();
 
     static final String WORD   = "    .word   ";
