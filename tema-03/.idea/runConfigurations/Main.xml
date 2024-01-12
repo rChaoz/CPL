@@ -2,7 +2,7 @@
   <configuration default="false" name="Main" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="cool.compiler.Compiler" />
     <module name="tema-03" />
-    <option name="PROGRAM_PARAMETERS" value="tests/tema2/19-self_type.cl" />
+    <option name="PROGRAM_PARAMETERS" value="tests/tema3/10-dispatch-Object.cl" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="cool.compiler.*" />

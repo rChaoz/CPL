@@ -79,7 +79,7 @@ public class SymbolTable {
         while (!(ctx.getParent() instanceof CoolParser.ProgramContext))
             ctx = ctx.getParent();
 
-        String message = "\"" + new File(Compiler.fileNames.get(ctx)).getName()
+        String message = "\"" + new File(Compiler.fileNamesMap.get(ctx)).getName()
                 + "\", line " + info.getLine()
                 + ":" + (info.getCharPositionInLine() + 1)
                 + ", Semantic error: " + str;

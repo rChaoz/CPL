@@ -101,33 +101,33 @@ class K {
     }
 
     static void branch(StringBuilder builder, String register1, Condition condition, String register2, String address) {
-        builder.append(condition.instruction).append(' ').append(register1).append(' ').append(register2).append(' ').append(address).append(SEP);
+        builder.append(condition.instruction).append(register1).append(' ').append(register2).append(' ').append(address).append(SEP);
     }
 
     // Memory management
     static void push(StringBuilder builder, String register) {
         sw(builder, register, "0($sp)");
-        builder.append(ADDIU).append(-4).append(SEP);
+        builder.append(ADDIU).append("$sp $sp ").append(-4).append(SEP);
     }
 
     static void pop(StringBuilder builder, String register) {
-        builder.append(ADDIU).append(4).append(SEP);
+        builder.append(ADDIU).append("$sp $sp ").append(4).append(SEP);
         lw(builder, register, "0($sp)");
     }
 
-    static void pop(StringBuilder builder, int size) {
-        builder.append(ADDIU).append(size).append(SEP);
+    static void pop(StringBuilder builder, int wordCount) {
+        builder.append(ADDIU).append("$sp $sp ").append(wordCount * 4).append(SEP);
     }
 
     static Scope<AddressSymbol> allocScope(StringBuilder builder, Scope<AddressSymbol> scope, List<AddressSymbol> variables) {
-        builder.append(ADDIU).append(-4 * variables.size()).append(SEP);
+        builder.append(ADDIU).append("$sp $sp ").append(-4 * variables.size()).append(SEP);
         Scope<AddressSymbol> newScope = new DefaultScope<>(scope);
         for (var v : variables) newScope.add(v);
         return newScope;
     }
 
     static Scope<AddressSymbol> freeScope(StringBuilder builder, Scope<AddressSymbol> scope) {
-        builder.append(ADDIU).append(4 * scope.asCollection().size()).append(SEP);
+        builder.append(ADDIU).append("$sp $sp ").append(4 * scope.asCollection().size()).append(SEP);
         return scope.getParent();
     }
 }

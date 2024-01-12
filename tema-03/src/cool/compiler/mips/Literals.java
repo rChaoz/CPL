@@ -12,16 +12,6 @@ public class Literals {
     private final Map<String, Integer> stringLiterals = new LinkedHashMap<>();
     private final Map<Boolean, Integer> booleanLiterals = new LinkedHashMap<>();
 
-    private void addLiteral(Integer literal) {
-        intLiterals.putIfAbsent(literal, intLiterals.size());
-    }
-
-    private void addLiteral(String literal) {
-        stringLiterals.putIfAbsent(literal, stringLiterals.size());
-        var length = Integer.valueOf(literal.length());
-        intLiterals.putIfAbsent(length, intLiterals.size());
-    }
-
     public Literals(Collection<Literal> literals) {
         // Ensure the basic literals exists
         addLiteral(0);
@@ -35,6 +25,16 @@ public class Literals {
                 case STRING -> addLiteral(literal.getContent());
             }
         }
+    }
+
+    public void addLiteral(Integer literal) {
+        intLiterals.putIfAbsent(literal, intLiterals.size());
+    }
+
+    public void addLiteral(String literal) {
+        stringLiterals.putIfAbsent(literal, stringLiterals.size());
+        var length = Integer.valueOf(literal.length());
+        intLiterals.putIfAbsent(length, intLiterals.size());
     }
 
     public void addClassNames(Classes classes) {

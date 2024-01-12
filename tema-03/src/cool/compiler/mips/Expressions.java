@@ -1,7 +1,13 @@
 package cool.compiler.mips;
 
+import cool.compiler.Compiler;
 import cool.compiler.ast.expression.*;
-import cool.structures.*;
+import cool.parser.CoolParser;
+import cool.structures.DefaultScope;
+import cool.structures.Scope;
+import cool.structures.SymbolTable;
+import cool.structures.VariableSymbol;
+import org.antlr.v4.runtime.ParserRuleContext;
 
 import java.util.List;
 
@@ -26,22 +32,6 @@ public class Expressions {
         return methodScope;
     }
 
-    public static void generateAttributeBody(StringBuilder builder, Classes.Class cls, Classes classes, Literals literals, Expression attributeBody) {
-        // Create attribute scope
-        var attributeScope = createAttributeScope(cls);
-
-        // Generate code
-        new Expressions(builder, cls.getName() + "_init_", classes, literals, attributeScope, cls).expression(attributeBody);
-    }
-
-    public static void generateMethodBody(StringBuilder builder, Classes.Class cls, Classes classes, Literals literals, MethodSymbol method) {
-        // Create method scope
-        var methodScope = createMethodScope(cls, method.getFormals());
-
-        // Generate code
-        new Expressions(builder, cls.getName() + "." + method.getName(), classes, literals, methodScope, cls).expression(method.getBody());
-    }
-
     private final StringBuilder builder;
     private final String prefix;
     private final Classes classes;
@@ -62,7 +52,7 @@ public class Expressions {
         this.ownerClass = ownerClass;
     }
 
-    private void expression(Expression expr) {
+    public void eval(Expression expr) {
         if (expr instanceof Arithmetic) arithmetic((Arithmetic) expr);
         else if (expr instanceof Assign) assign((Assign) expr);
         else if (expr instanceof Block) block((Block) expr);
@@ -83,10 +73,10 @@ public class Expressions {
 
     private void arithmetic(Arithmetic arithmetic) {
         // Evaluate left & right into $a0 and $a1
-        expression(arithmetic.getLeft());
+        eval(arithmetic.getLeft());
         K.push(builder, "$a0");
         localIndex++;
-        expression(arithmetic.getRight());
+        eval(arithmetic.getRight());
         K.move(builder, "$a1", "$a0");
         K.pop(builder, "$a0");
         localIndex--;
@@ -95,11 +85,11 @@ public class Expressions {
         K.lw(builder, "$a1", "12($a1)");
         // Perform operation
         switch (arithmetic.getOperation()) {
-            case ADD -> builder.append(K.ADD).append("$a0").append(' ').append("$a0").append(' ').append("$a1").append(K.SEP);
-            case SUBTRACT -> builder.append(K.SUB).append("$a0").append(' ').append("$a0").append(' ').append("$a1").append(K.SEP);
-            case MULTIPLY -> builder.append(K.MUL).append("$a0").append(' ').append("$a0").append(' ').append("$a1").append(K.SEP);
+            case ADD -> builder.append(K.ADD).append("$a0 $a0 $a1").append(K.SEP);
+            case SUBTRACT -> builder.append(K.SUB).append("$a0 $a0 $a1").append(K.SEP);
+            case MULTIPLY -> builder.append(K.MUL).append("$a0 $a0 $a1").append(K.SEP);
             case DIVIDE -> {
-                builder.append(K.DIV).append("$a0").append(' ').append("$a1").append(K.SEP);
+                builder.append(K.DIV).append("$a0 $a1").append(K.SEP);
                 K.move(builder, "$a0", "$low");
             }
         }
@@ -107,22 +97,25 @@ public class Expressions {
     }
 
     private void assign(Assign assign) {
-        expression(assign.getExpression());
+        eval(assign.getExpression());
         K.sw(builder, "$a0", currentScope.lookup(assign.getId()).getAddress());
     }
 
     private void block(Block block) {
-        for (var expr : block.getExpressions()) expression(expr);
+        for (var expr : block.getExpressions()) eval(expr);
     }
 
     private void casee(Case casee) {
         // Prefix for labels in this case & label for jump to end of case
         String prefix = this.prefix + "_case" + this.exprCounter++;
-        String endJump = prefix + "_end";
+        String expressionOk = prefix + "_notVoid", endJump = prefix + "_end";
 
-        // Expression result will stay in $a0 until a branch is selected, ensure it's not void first
-        expression(casee.getTarget());
-        K.branch(builder, "$a0", K.Condition.Equal, "$zero", "_case_abort2");
+        // Evaluate target expression and ensure it's not void first
+        eval(casee.getTarget());
+        K.branch(builder, "$a0", K.Condition.NotEqual, "$zero", expressionOk);
+        K.jal(builder, "_case_abort2");
+        // Expression result will stay in $a0 until a branch is selected
+        K.label(builder, expressionOk);
 
         // Place tag of expression type in $t0
         K.lw(builder, "$t0", "0($a0)");
@@ -174,7 +167,7 @@ public class Expressions {
             Scope<AddressSymbol> branchScope = K.allocScope(builder, currentScope, List.of(branchVariable));
             K.sw(builder, "$a0", branchVariable.getAddress());
 
-            expression(branch.getBody());
+            eval(branch.getBody());
 
             K.freeScope(builder, branchScope);
             localIndex--;
@@ -215,11 +208,11 @@ public class Expressions {
          */
         String trueLabel = prefix + "_true", endLabel = prefix + "_end";
 
-        expression(comparison.getLeft());
+        eval(comparison.getLeft());
         // Save on stack so we can execute right side as well
         K.push(builder, "$a0");
         localIndex++;
-        expression(comparison.getRight());
+        eval(comparison.getRight());
         K.pop(builder, "$t1");
         localIndex--;
         K.move(builder, "$t2", "$a0");
@@ -254,11 +247,11 @@ public class Expressions {
     }
 
     private void complement(Complement complement) {
-        expression(complement.getOperand());
+        eval(complement.getOperand());
         // Extract int32 value from int
         K.lw(builder, "$a0", "12($a0)");
         // Calculate complement
-        builder.append(K.SUB).append("$a0").append(' ').append("$zero").append(' ').append("$a0");
+        builder.append(K.SUB).append("$a0 $zero $a0");
         int32ToObject();
     }
 
@@ -267,18 +260,18 @@ public class Expressions {
         String trueLabel = prefix + "_true", endLabel = prefix + "_end";
 
         // Evaluate condition & extract Bool attribute
-        expression(iff.getCondition());
+        eval(iff.getCondition());
         K.lw(builder, "$a0", "12($a0)");
         // Test condition result
         K.branch(builder, "$a0", K.Condition.NotEqual, "$zero", trueLabel);
 
         // False branch
-        expression(iff.getElseBranch());
+        eval(iff.getElseBranch());
         K.j(builder, endLabel);
 
         // True branch
         K.label(builder, trueLabel);
-        expression(iff.getThenBranch());
+        eval(iff.getThenBranch());
         K.label(builder, endLabel);
     }
 
@@ -311,7 +304,7 @@ public class Expressions {
         String prefix = this.prefix + this.exprCounter++;
         String trueLabel = prefix + "_true", endLabel = prefix + "_end";
 
-        expression(isVoid.getTarget());
+        eval(isVoid.getTarget());
         K.branch(builder, "$a0", K.Condition.Equal, "$zero", trueLabel);
 
         // False branch
@@ -340,7 +333,7 @@ public class Expressions {
             var type = local.getDeclaredType();
             currentScope = K.allocScope(builder, currentScope, List.of(localVariable));
             if (local.getInitializer() != null) {
-                expression(local.getInitializer());
+                eval(local.getInitializer());
                 K.sw(builder, "$a0", localVariable.getAddress());
             } else if (type == SymbolTable.Int) K.sw(builder, "$a0", literals.getLabel(0));
             else if (type == SymbolTable.String) K.sw(builder, "$a0", literals.getLabel(""));
@@ -349,7 +342,7 @@ public class Expressions {
         }
 
         // Execute the let body
-        expression(let.getBody());
+        eval(let.getBody());
 
         // Restore the stack
         for (var ignored: let.getLocals()) currentScope = K.freeScope(builder, currentScope);
@@ -360,46 +353,56 @@ public class Expressions {
     private void methodCall(MethodCall call) {
         var target = call.getTargetObject();
         var cls = classes.get(target.getExpressionType(null)); // type is cached, so it's ok to not pass a scope
-        expression(target);
+        if (cls == null) cls = ownerClass;
+        eval(target);
 
         if (call.getTargetType() == null) // Dynamic dispatch
-            doMethodCall(cls, call.getName(), call.getArguments(), false);
+            doMethodCall(call.getContext(), cls, call.getName(), call.getArguments(), false);
         else // Static dispatch
-            doMethodCall(classes.get(call.getTargetClassType()), call.getName(), call.getArguments(), true);
+            doMethodCall(call.getContext(), classes.get(call.getTargetClassType()), call.getName(), call.getArguments(), true);
     }
 
     private void selfMethodCall(SelfMethodCall call) {
         // Target object is self, move it to $a0
         K.move(builder, "$a0", "$s0");
-        doMethodCall(ownerClass, call.getName(), call.getArguments(), false);
+        doMethodCall(call.getContext(), ownerClass, call.getName(), call.getArguments(), false);
     }
 
-    private void doMethodCall(Classes.Class cls, String methodName, List<Expression> arguments, boolean isStaticDispatch) {
+    private void doMethodCall(ParserRuleContext ctx, Classes.Class cls, String methodName, List<Expression> arguments, boolean isStaticDispatch) {
+        // If target is void, abort (report file name and line)
+        String okLabel = prefix + this.exprCounter++ + "_notVoid";
+        K.branch(builder, "$a0", K.Condition.NotEqual, "$zero", okLabel);
+        K.li(builder, "$t1", ctx.start.getLine());
+        while (!(ctx.getParent() instanceof CoolParser.ProgramContext)) ctx = ctx.getParent();
+        K.la(builder, "$a0", literals.getLabel(Compiler.fileNamesMap.get(ctx)));
+        K.jal(builder, "_dispatch_abort");
+        K.label(builder, okLabel);
         // Target object is in $a0, save it
         K.push(builder, "$a0");
-        int targetIndex = localIndex++;
+        int targetObjectIndex = localIndex++;
         // Add arguments to stack in reverse order
         for (int i = arguments.size() - 1; i >= 0; i--) {
-            expression(arguments.get(i));
+            eval(arguments.get(i));
             K.push(builder, "$a0");
             localIndex++;
         }
         // Put target object back in $a0
-        K.lw(builder, "$a0", -4 * (targetIndex + 1) + "$fp");
+        K.lw(builder, "$a0", -4 * (targetObjectIndex + 1) + "($fp)");
         if (isStaticDispatch) {
             builder.append(K.JR).append(cls.getName()).append('.').append(methodName).append(K.SEP);
         } else {
-            K.lw(builder, "$t0", "8($s0)");
+            K.lw(builder, "$t0", "8($a0)");
             K.lw(builder, "$t0", 4 * cls.getMethodIndex(methodName) + "($t0)");
             builder.append(K.JALR).append("$t0").append(K.SEP);
         }
-        // Free up the stack
-        K.pop(builder, 4 * (arguments.size() + 1));
+        // Remove target object from stack (arguments are removed by callee)
+        K.pop(builder, 1);
         localIndex -= arguments.size() + 1;
     }
 
     private void variable(Variable variable) {
-        K.lw(builder, "$a0", mainScope.lookup(variable.getId()).getAddress());
+        if (variable.getId().equals("self")) K.move(builder, "$a0", "$s0");
+        else K.lw(builder, "$a0", mainScope.lookup(variable.getId()).getAddress());
     }
 
     private void whilee(While whilee) {
@@ -407,12 +410,12 @@ public class Expressions {
         String startLabel = prefix + "_start", endLabel = prefix + "_end";
         K.label(builder, startLabel);
 
-        expression(whilee.getCondition());
+        eval(whilee.getCondition());
         // If condition is false, jump to end
         K.lw(builder, "$a0", "12($a0)");
         K.branch(builder, "$a0", K.Condition.Equal, "$zero", endLabel);
         // Else, evaluate the body
-        expression(whilee.getBody());
+        eval(whilee.getBody());
         // And loop back to condition testing
         K.j(builder, startLabel);
 

@@ -1,6 +1,5 @@
 package cool.compiler.mips;
 
-import cool.compiler.ast.expression.Expression;
 import cool.structures.MethodSymbol;
 import cool.structures.VariableSymbol;
 
@@ -29,7 +28,14 @@ public class Methods {
         K.label(builder, cls.getName() + "." + method.getName());
 
         builder.append(methodBodyHead);
-        Expressions.generateMethodBody(builder, cls, classes, literals, method);
+
+        // Create method scope
+        var methodScope = Expressions.createMethodScope(cls, method.getFormals());
+        // Evaluate body
+        new Expressions(builder, cls.getName() + "." + method.getName(), classes, literals, methodScope, cls).eval(method.getBody());
+        // Pop arguments off the stack
+        K.pop(builder, method.getFormals().size());
+
         builder.append(methodBodyTail);
 
         return builder.toString();
@@ -46,9 +52,9 @@ public class Methods {
         // Initialize all attributes that have an initializer
         var attributeScope = Expressions.createAttributeScope(cls);
         for (VariableSymbol attr : cls.getSymbol().getAttributeScope().asCollection()) {
-            Expression initializer = attr.getInitializer();
-            if (initializer == null) continue;
-            Expressions.generateAttributeBody(builder, cls, classes, literals, initializer);
+            if (attr.getInitializer() == null) continue;
+            // Evaluate the attribute body and save its result in attribute
+            new Expressions(builder, cls.getName() + "_init_", classes, literals, attributeScope, cls).eval(attr.getInitializer());
             K.sw(builder, "$a0", attributeScope.lookup(attr.getName()).getAddress());
         }
 

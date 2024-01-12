@@ -24,7 +24,8 @@ import java.util.Set;
 
 public class Compiler {
     // Annotates class nodes with the names of files where they are defined.
-    public static ParseTreeProperty<String> fileNames = new ParseTreeProperty<>();
+    public static ParseTreeProperty<String> fileNamesMap = new ParseTreeProperty<>();
+    public static Set<String> fileNamesSet = new HashSet<>();
 
     private static final String dataStart = """
                 .data
@@ -68,8 +69,9 @@ public class Compiler {
 
         // Parse each input file and build one big parse tree out of
         // individual parse trees.
-        for (var fileName : args) {
-            var input = CharStreams.fromFileName(fileName);
+        for (var filePath : args) {
+            var fileName = new File(filePath).getName();
+            var input = CharStreams.fromFileName(filePath);
 
             // Lexer
             if (lexer == null)
@@ -113,7 +115,7 @@ public class Compiler {
                                         int line, int charPositionInLine,
                                         String msg,
                                         RecognitionException e) {
-                    String newMsg = "\"" + new File(fileName).getName() + "\", line " +
+                    String newMsg = "\"" + fileName + "\", line " +
                             line + ":" + (charPositionInLine + 1) + ", ";
 
                     Token token = (Token) offendingSymbol;
@@ -145,8 +147,10 @@ public class Compiler {
                 var child = tree.getChild(i);
                 // The only ParserRuleContext children of the program node
                 // are class nodes.
-                if (child instanceof ParserRuleContext)
-                    fileNames.put(child, fileName);
+                if (child instanceof ParserRuleContext) {
+                    fileNamesMap.put(child, fileName);
+                    fileNamesSet.add(fileName);
+                }
             }
 
             // Record any lexical or syntax errors.
@@ -370,6 +374,7 @@ public class Compiler {
         Classes c = new Classes();
         for (PClass pClass : program.getClasses()) c.defineClass(SymbolTable.lookupClass(pClass.getName()));
         literals.addClassNames(c);
+        for (String fileName : fileNamesSet) literals.addLiteral(fileName);
 
         System.out.print(dataStart);
         System.out.print(c.generateBasicTags());
