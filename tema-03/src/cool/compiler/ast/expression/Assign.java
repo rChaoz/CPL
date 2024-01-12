@@ -61,4 +61,9 @@ public class Assign extends Expression {
                                 .formatted(expressionType.getName(), varType.getName(), id));
         return expressionType;
     }
+
+    @Override
+    public String toString() {
+        return "%s <- %s".formatted(id, getContentText(expression));
+    }
 }

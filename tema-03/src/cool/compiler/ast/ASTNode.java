@@ -7,6 +7,18 @@ import java.util.List;
 public abstract class ASTNode {
     public abstract ParserRuleContext getContext();
 
+    public static String getContentText(ASTNode node) {
+        return getContentText(node.getContext());
+    }
+
+    public static String getContentText(ParserRuleContext context) {
+        if (context.children == null) return "";
+        return String.join(" ", context.children.stream().map(child -> {
+            if (child instanceof ParserRuleContext) return getContentText((ParserRuleContext) child);
+            else return child.getText();
+        }).toList());
+    }
+
     // Printing stuff
     private int indent;
 

@@ -53,4 +53,9 @@ public class Let extends Expression {
         }
         return body.getExpressionType(letScope);
     }
+
+    @Override
+    public String toString() {
+        return "let " + String.join(", ", locals.stream().map(local -> local.getId() + ": " + local.getType()).toList());
+    }
 }

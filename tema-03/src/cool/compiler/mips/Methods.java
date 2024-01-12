@@ -23,7 +23,7 @@ public class Methods {
             """;
 
     public static String generateMethodBody(Classes.Class cls, Classes classes, Literals literals, MethodSymbol method) {
-        StringBuilder builder = new StringBuilder();
+        StringBuilder builder = new StringBuilder(K.SEP);
         K.label(builder, cls.getName() + "." + method.getName());
 
         builder.append(methodBodyHead);
@@ -36,13 +36,13 @@ public class Methods {
         builder.append(methodBodyTail);
         // Pop arguments off the stack and return
         K.pop(builder, method.getFormals().size());
-        builder.append(K.ret);
+        builder.append(K.ret).append(K.SEP);
 
         return builder.toString();
     }
 
     public static String generateInitMethodBody(Classes.Class cls, Classes classes, Literals literals) {
-        StringBuilder builder = new StringBuilder();
+        StringBuilder builder = new StringBuilder(K.SEP);
         K.label(builder, cls.getName() + "_init");
         builder.append(methodBodyHead);
 
@@ -58,7 +58,7 @@ public class Methods {
             K.sw(builder, "$a0", attributeScope.lookup(attr.getName()).getAddress());
         }
 
-        builder.append(setSelf$a0).append(methodBodyTail).append(K.ret);
+        builder.append(setSelf$a0).append(methodBodyTail).append(K.ret).append(K.SEP);
         return builder.toString();
     }
 }

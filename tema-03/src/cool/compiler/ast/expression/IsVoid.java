@@ -39,4 +39,9 @@ public class IsVoid extends Expression {
         target.getExpressionType(scope);
         return SymbolTable.Bool;
     }
+
+    @Override
+    public String toString() {
+        return "isvoid " + getContentText(target);
+    }
 }

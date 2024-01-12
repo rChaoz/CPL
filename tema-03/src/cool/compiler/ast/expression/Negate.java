@@ -37,4 +37,14 @@ public class Negate extends Expression {
             SymbolTable.error(this, context.expr().start, "Operand of not has type %s instead of Bool".formatted(type.getName()));
         return SymbolTable.Bool;
     }
+
+    @Override
+    public ClassSymbol getExpressionType(Scope<VariableSymbol> scope) {
+        return super.getExpressionType(scope);
+    }
+
+    @Override
+    public String toString() {
+        return "calc not [ %s ]" + getContentText(target);
+    }
 }

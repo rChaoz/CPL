@@ -8,10 +8,17 @@ import java.util.List;
 class K {
     // Basic
     static final String SEP = System.lineSeparator();
+    static final String COMMENT = "    # ";
 
     static final String WORD   = "    .word   ";
     static final String ASCIIZ = "    .asciiz ";
     static final String ALIGN  = "    .align  ";
+
+    static void comment(StringBuilder builder, int depth, Object message) {
+        builder.append(COMMENT);
+        while (depth-- > 0) builder.append("> ");
+        builder.append(message).append(SEP);
+    }
 
     static void label(StringBuilder builder, String label) {
         builder.append(label).append(':').append(SEP);

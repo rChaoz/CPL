@@ -1,6 +1,7 @@
 package cool.compiler.mips;
 
 import cool.compiler.Compiler;
+import cool.compiler.ast.ASTNode;
 import cool.compiler.ast.expression.*;
 import cool.parser.CoolParser;
 import cool.structures.DefaultScope;
@@ -36,10 +37,9 @@ public class Expressions {
     private final String prefix;
     private final Classes classes;
     private final Literals literals;
-    private final Scope<AddressSymbol> mainScope;
     private Scope<AddressSymbol> currentScope;
     private final Classes.Class ownerClass;
-    private int exprCounter = 0, localIndex = 0;
+    private int exprCounter = 0, localIndex = 0, depth = -1;
 
     public Expressions(StringBuilder builder, String prefix, Classes classes, Literals literals,
                        Scope<AddressSymbol> mainScope, Classes.Class ownerClass) {
@@ -47,12 +47,13 @@ public class Expressions {
         this.prefix = prefix;
         this.classes = classes;
         this.literals = literals;
-        this.mainScope = mainScope;
         this.currentScope = mainScope;
         this.ownerClass = ownerClass;
     }
 
     public void eval(Expression expr) {
+        builder.append(K.SEP);
+        depth++;
         if (expr instanceof Arithmetic) arithmetic((Arithmetic) expr);
         else if (expr instanceof Assign) assign((Assign) expr);
         else if (expr instanceof Block) block((Block) expr);
@@ -69,9 +70,12 @@ public class Expressions {
         else if (expr instanceof Variable) variable((Variable) expr);
         else if (expr instanceof While) whilee((While) expr);
         else throw new RuntimeException("Unknown expression " + expr.getClass().getCanonicalName() + ": " + expr);
+        builder.append(K.SEP);
+        depth--;
     }
 
     private void arithmetic(Arithmetic arithmetic) {
+        K.comment(builder, depth, arithmetic);
         // Evaluate left & right into $a0 and $a1
         eval(arithmetic.getLeft());
         K.push(builder, "$a0");
@@ -97,15 +101,18 @@ public class Expressions {
     }
 
     private void assign(Assign assign) {
+        K.comment(builder, depth, assign);
         eval(assign.getExpression());
         K.sw(builder, "$a0", currentScope.lookup(assign.getId()).getAddress());
     }
 
     private void block(Block block) {
+        K.comment(builder, depth, block);
         for (var expr : block.getExpressions()) eval(expr);
     }
 
     private void casee(Case casee) {
+        K.comment(builder, depth, casee);
         // Prefix for labels in this case & label for jump to end of case
         String prefix = this.prefix + "_case" + this.exprCounter++;
         String expressionOk = prefix + "_notVoid", endJump = prefix + "_end";
@@ -125,6 +132,7 @@ public class Expressions {
         // Need -1 as constant
         K.li(builder, "$t3", -1);
         for (var branch : casee.getBranches()) {
+            K.comment(builder, depth, branch);
             /* == Pseudocode ==
 
             Variables:
@@ -181,6 +189,7 @@ public class Expressions {
     }
 
     private void comparison(Comparison comparison) {
+        K.comment(builder, depth, comparison);
         String prefix = this.prefix + "_cmp" + this.exprCounter++;
         /* == Pseudocode ==
         $t1 <- left()
@@ -247,6 +256,7 @@ public class Expressions {
     }
 
     private void complement(Complement complement) {
+        K.comment(builder, depth, complement);
         eval(complement.getOperand());
         // Extract int32 value from int
         K.lw(builder, "$a0", "12($a0)");
@@ -256,6 +266,7 @@ public class Expressions {
     }
 
     private void iff(If iff) {
+        K.comment(builder, depth, iff);
         String prefix = this.prefix + this.exprCounter++;
         String trueLabel = prefix + "_true", endLabel = prefix + "_end";
 
@@ -276,6 +287,7 @@ public class Expressions {
     }
 
     private void instantiation(Instantiation instantiation) {
+        K.comment(builder, depth, instantiation);
         // Handle dynamic object creation
         if (instantiation.getClassType() == SymbolTable.SelfType) {
             // Get address of protObj and save it to stack
@@ -301,6 +313,7 @@ public class Expressions {
     }
 
     private void isvoid(IsVoid isVoid) {
+        K.comment(builder, depth, isVoid);
         String prefix = this.prefix + this.exprCounter++;
         String trueLabel = prefix + "_true", endLabel = prefix + "_end";
 
@@ -317,6 +330,7 @@ public class Expressions {
     }
 
     private void literal(Literal literal) {
+        K.comment(builder, depth, literal);
         K.la(builder, "$a0", switch (literal.getType()) {
             case INTEGER -> literals.getLabel(Integer.parseInt(literal.getContent()));
             case STRING -> literals.getLabel(literal.getContent());
@@ -325,7 +339,7 @@ public class Expressions {
     }
 
     private void let(Let let) {
-
+        K.comment(builder, depth, let);
         var initialScope = currentScope;
 
         // Allocate variables 1 by 1 as variables can depend on previous ones
@@ -334,11 +348,13 @@ public class Expressions {
             var type = local.getDeclaredType();
             currentScope = K.allocScope(builder, currentScope, List.of(localVariable));
 
-            if (local.getInitializer() != null) eval(local.getInitializer());
-            else if (type == SymbolTable.Int) K.sw(builder, "$a0", literals.getLabel(0));
-            else if (type == SymbolTable.String) K.sw(builder, "$a0", literals.getLabel(""));
-            else if (type == SymbolTable.Bool) K.sw(builder, "$a0", literals.getLabel(false));
-            else K.sw(builder, "$a0", "$zero");
+            if (local.getInitializer() != null) {
+                K.comment(builder, depth, local);
+                eval(local.getInitializer());
+            } else if (type == SymbolTable.Int) K.la(builder, "$a0", literals.getLabel(0));
+            else if (type == SymbolTable.String) K.la(builder, "$a0", literals.getLabel(""));
+            else if (type == SymbolTable.Bool) K.la(builder, "$a0", literals.getLabel(false));
+            else K.move(builder, "$a0", "$zero");
             K.sw(builder, "$a0", localVariable.getAddress());
         }
 
@@ -352,6 +368,7 @@ public class Expressions {
     }
 
     private void methodCall(MethodCall call) {
+        K.comment(builder, depth, call);
         var target = call.getTargetObject();
         var cls = classes.get(target.getExpressionType(null)); // type is cached, so it's ok to not pass a scope
         if (cls == null) cls = ownerClass;
@@ -364,6 +381,7 @@ public class Expressions {
     }
 
     private void selfMethodCall(SelfMethodCall call) {
+        K.comment(builder, depth, call);
         // Target object is self, move it to $a0
         K.move(builder, "$a0", "$s0");
         doMethodCall(call.getContext(), ownerClass, call.getName(), call.getArguments(), false);
@@ -383,6 +401,7 @@ public class Expressions {
         int targetObjectIndex = localIndex++;
         // Add arguments to stack in reverse order
         for (int i = arguments.size() - 1; i >= 0; i--) {
+            K.comment(builder, depth, "argument %d: [ %s ]".formatted(i, ASTNode.getContentText(arguments.get(i))));
             eval(arguments.get(i));
             K.push(builder, "$a0");
             localIndex++;
@@ -402,11 +421,13 @@ public class Expressions {
     }
 
     private void variable(Variable variable) {
+        K.comment(builder, depth, variable);
         if (variable.getId().equals("self")) K.move(builder, "$a0", "$s0");
         else K.lw(builder, "$a0", currentScope.lookup(variable.getId()).getAddress());
     }
 
     private void whilee(While whilee) {
+        K.comment(builder, depth, whilee);
         String prefix = this.prefix + this.exprCounter++;
         String startLabel = prefix + "_start", endLabel = prefix + "_end";
         K.label(builder, startLabel);

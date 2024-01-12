@@ -76,4 +76,10 @@ public class LetLocal extends ASTNode {
     public ClassSymbol getDeclaredType() {
         return declaredType;
     }
+
+    @Override
+    public String toString() {
+        if (initializer == null) return "local %s (no initializer)";
+        else return "local %s <- %s".formatted(id, getContentText(initializer));
+    }
 }

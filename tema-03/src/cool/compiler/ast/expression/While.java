@@ -47,4 +47,9 @@ public class While extends Expression {
         body.getExpressionType(scope);
         return SymbolTable.Object;
     }
+
+    @Override
+    public String toString() {
+        return "while [ %s ] do [ %s ]".formatted(getContentText(condition), getContentText(body));
+    }
 }

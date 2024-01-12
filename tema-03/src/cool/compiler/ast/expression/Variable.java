@@ -42,4 +42,9 @@ public class Variable extends Expression {
             return null;
         } else return var.getType();
     }
+
+    @Override
+    public String toString() {
+        return "access variable " + id;
+    }
 }

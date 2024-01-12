@@ -50,4 +50,9 @@ public class Literal extends Expression {
             case BOOLEAN -> SymbolTable.Bool;
         };
     }
+
+    @Override
+    public String toString() {
+        return getExpressionType(null).getName() + " literal: " + content;
+    }
 }

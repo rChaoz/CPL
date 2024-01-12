@@ -13,6 +13,9 @@ public abstract class Expression extends ASTNode {
 
     protected abstract ClassSymbol checkAndComputeType(Scope<VariableSymbol> scope);
 
+    @Override
+    public abstract String toString();
+
     public ClassSymbol getExpressionType(Scope<VariableSymbol> scope) {
         if (!typeComputed) {
             expressionType = checkAndComputeType(scope);

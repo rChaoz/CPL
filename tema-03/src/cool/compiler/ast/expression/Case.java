@@ -52,4 +52,9 @@ public class Case extends Expression {
         }
         return ClassSymbol.joinTypes(branchTypes, scope);
     }
+
+    @Override
+    public String toString() {
+        return "case [ %s ]".formatted(getContentText(target));
+    }
 }

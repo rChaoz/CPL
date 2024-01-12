@@ -55,4 +55,9 @@ public class If extends Expression {
         if (thenType == null || elseType == null) return null;
         return ClassSymbol.joinTypes(thenType, elseType, scope);
     }
+
+    @Override
+    public String toString() {
+        return "if [ %s ] then [ %s ] else [ %s ]".formatted(getContentText(condition), getContentText(thenBranch), getContentText(elseBranch));
+    }
 }

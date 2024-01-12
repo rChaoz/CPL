@@ -77,4 +77,9 @@ public class Arithmetic extends Expression {
         right.getExpressionType(scope);
         return SymbolTable.Int;
     }
+
+    @Override
+    public String toString() {
+        return "calc [ %s ]  %s  [ %s ]".formatted(getContentText(left), operation.symbol, getContentText(right));
+    }
 }

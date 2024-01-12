@@ -119,4 +119,10 @@ public class MethodCall extends Expression {
         if (objectClass == null) return method.getReturnType();
         else return method.getReturnType(objectClass);
     }
+
+    @Override
+    public String toString() {
+        if (targetType == null) return "dynamic call [ %s ].%s(%d arguments)".formatted(getContentText(targetObject), name, arguments.size());
+        else return "static call @%s [ %s ].%s(%d arguments)".formatted(targetType, getContentText(targetObject), name, arguments.size());
+    }
 }

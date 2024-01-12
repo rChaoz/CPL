@@ -83,4 +83,9 @@ public class Comparison extends Expression {
         }
         return SymbolTable.Bool;
     }
+
+    @Override
+    public String toString() {
+        return "compare [ %s ]  %s  [ %s ]".formatted(getContentText(left), operation.symbol, getContentText(right));
+    }
 }

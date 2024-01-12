@@ -47,4 +47,9 @@ public class Instantiation extends Expression {
     public ClassSymbol getClassType() {
         return classType;
     }
+
+    @Override
+    public String toString() {
+        return "new " + type;
+    }
 }

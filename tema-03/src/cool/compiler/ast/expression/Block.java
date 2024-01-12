@@ -40,4 +40,9 @@ public class Block extends Expression {
         for (var expr : expressions) expr.getExpressionType(scope);
         return expressions.get(expressions.size() - 1).getExpressionType(scope);
     }
+
+    @Override
+    public String toString() {
+        return "block with %d expressions".formatted(expressions.size());
+    }
 }

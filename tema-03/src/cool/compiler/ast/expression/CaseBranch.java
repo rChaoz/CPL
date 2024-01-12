@@ -70,4 +70,9 @@ public class CaseBranch extends ASTNode {
         print(type);
         print(body);
     }
+
+    @Override
+    public String toString() {
+        return "branch %s: %s -> [ %s ]".formatted(id, type, getContentText(body));
+    }
 }

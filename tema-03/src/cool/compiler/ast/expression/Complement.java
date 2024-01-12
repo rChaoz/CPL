@@ -40,4 +40,9 @@ public class Complement extends Expression {
         operand.getExpressionType(scope);
         return SymbolTable.Int;
     }
+
+    @Override
+    public String toString() {
+        return "calc ~ [ %s ]".formatted(getContentText(operand));
+    }
 }

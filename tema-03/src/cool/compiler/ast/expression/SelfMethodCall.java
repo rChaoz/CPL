@@ -46,4 +46,9 @@ public class SelfMethodCall extends Expression {
     public ClassSymbol checkAndComputeType(Scope<VariableSymbol> scope) {
         return MethodCall.checkMethodCall(scope, scope.getCurrentClass(), null, name, arguments, this, context.ID().getSymbol());
     }
+
+    @Override
+    public String toString() {
+        return "dynamic call self.%s(%d arguments)".formatted(name, arguments.size());
+    }
 }
