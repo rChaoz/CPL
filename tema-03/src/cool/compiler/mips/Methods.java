@@ -13,14 +13,13 @@ public class Methods {
                 move    $s0 $a0
             """;
 
-    private static final String returnSelf = "    move    $a0 $s0\n";
+    private static final String setSelf$a0 = "    move    $a0 $s0\n";
 
     private static final String methodBodyTail = """
                 lw      $fp 12($sp)
                 lw      $s0 8($sp)
                 lw      $ra 4($sp)
                 addiu   $sp $sp 12
-                jr      $ra
             """;
 
     public static String generateMethodBody(Classes.Class cls, Classes classes, Literals literals, MethodSymbol method) {
@@ -33,10 +32,11 @@ public class Methods {
         var methodScope = Expressions.createMethodScope(cls, method.getFormals());
         // Evaluate body
         new Expressions(builder, cls.getName() + "." + method.getName(), classes, literals, methodScope, cls).eval(method.getBody());
-        // Pop arguments off the stack
-        K.pop(builder, method.getFormals().size());
 
         builder.append(methodBodyTail);
+        // Pop arguments off the stack and return
+        K.pop(builder, method.getFormals().size());
+        builder.append(K.ret);
 
         return builder.toString();
     }
@@ -58,7 +58,7 @@ public class Methods {
             K.sw(builder, "$a0", attributeScope.lookup(attr.getName()).getAddress());
         }
 
-        builder.append(returnSelf).append(methodBodyTail);
+        builder.append(setSelf$a0).append(methodBodyTail).append(K.ret);
         return builder.toString();
     }
 }

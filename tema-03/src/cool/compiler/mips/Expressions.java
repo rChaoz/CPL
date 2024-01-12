@@ -325,6 +325,7 @@ public class Expressions {
     }
 
     private void let(Let let) {
+
         var initialScope = currentScope;
 
         // Allocate variables 1 by 1 as variables can depend on previous ones
@@ -332,13 +333,13 @@ public class Expressions {
             var localVariable = new AddressSymbol(local.getId(), localIndex++, AddressSymbol.Type.LOCAL);
             var type = local.getDeclaredType();
             currentScope = K.allocScope(builder, currentScope, List.of(localVariable));
-            if (local.getInitializer() != null) {
-                eval(local.getInitializer());
-                K.sw(builder, "$a0", localVariable.getAddress());
-            } else if (type == SymbolTable.Int) K.sw(builder, "$a0", literals.getLabel(0));
+
+            if (local.getInitializer() != null) eval(local.getInitializer());
+            else if (type == SymbolTable.Int) K.sw(builder, "$a0", literals.getLabel(0));
             else if (type == SymbolTable.String) K.sw(builder, "$a0", literals.getLabel(""));
             else if (type == SymbolTable.Bool) K.sw(builder, "$a0", literals.getLabel(false));
             else K.sw(builder, "$a0", "$zero");
+            K.sw(builder, "$a0", localVariable.getAddress());
         }
 
         // Execute the let body
@@ -389,7 +390,7 @@ public class Expressions {
         // Put target object back in $a0
         K.lw(builder, "$a0", -4 * (targetObjectIndex + 1) + "($fp)");
         if (isStaticDispatch) {
-            builder.append(K.JR).append(cls.getName()).append('.').append(methodName).append(K.SEP);
+            builder.append(K.JAL).append(cls.getName()).append('.').append(methodName).append(K.SEP);
         } else {
             K.lw(builder, "$t0", "8($a0)");
             K.lw(builder, "$t0", 4 * cls.getMethodIndex(methodName) + "($t0)");
@@ -402,7 +403,7 @@ public class Expressions {
 
     private void variable(Variable variable) {
         if (variable.getId().equals("self")) K.move(builder, "$a0", "$s0");
-        else K.lw(builder, "$a0", mainScope.lookup(variable.getId()).getAddress());
+        else K.lw(builder, "$a0", currentScope.lookup(variable.getId()).getAddress());
     }
 
     private void whilee(While whilee) {

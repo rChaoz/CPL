@@ -54,6 +54,8 @@ class K {
     static final String BLT   = "    blt     ";
     static final String BLE   = "    ble     ";
 
+    static final String ret   = JR + "$ra" + SEP;
+
     static void jal(StringBuilder builder, String address) {
         builder.append(JAL).append(address).append(SEP);
     }
