@@ -112,7 +112,7 @@ public class Classes implements Iterable<Classes.Class> {
             return builder.toString();
         }
 
-        public int getMethodId(String methodName) {
+        public int getMethodIndex(String methodName) {
             return methodIdMap.get(methodName);
         }
     }

@@ -18,6 +18,14 @@ public class SelfMethodCall extends Expression {
         this.arguments = arguments;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public List<Expression> getArguments() {
+        return arguments;
+    }
+
     @Override
     public CoolParser.SelfMethodCallContext getContext() {
         return context;

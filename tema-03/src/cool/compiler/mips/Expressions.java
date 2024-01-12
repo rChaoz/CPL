@@ -26,20 +26,20 @@ public class Expressions {
         return methodScope;
     }
 
-    public static void generateAttributeBody(StringBuilder builder, Classes.Class cls, Classes classes,Literals literals, Expression attributeBody) {
+    public static void generateAttributeBody(StringBuilder builder, Classes.Class cls, Classes classes, Literals literals, Expression attributeBody) {
         // Create attribute scope
         var attributeScope = createAttributeScope(cls);
 
         // Generate code
-        new Expressions(builder, cls.getName() + "_init_", classes, literals, attributeScope).expression(attributeBody);
+        new Expressions(builder, cls.getName() + "_init_", classes, literals, attributeScope, cls).expression(attributeBody);
     }
 
-    public static void generateMethodBody(StringBuilder builder, Classes.Class cls, Classes classes,Literals literals, MethodSymbol method) {
+    public static void generateMethodBody(StringBuilder builder, Classes.Class cls, Classes classes, Literals literals, MethodSymbol method) {
         // Create method scope
         var methodScope = createMethodScope(cls, method.getFormals());
 
         // Generate code
-        new Expressions(builder, cls.getName() + "." + method.getName(), classes, literals, methodScope).expression(method.getBody());
+        new Expressions(builder, cls.getName() + "." + method.getName(), classes, literals, methodScope, cls).expression(method.getBody());
     }
 
     private final StringBuilder builder;
@@ -48,15 +48,18 @@ public class Expressions {
     private final Literals literals;
     private final Scope<AddressSymbol> mainScope;
     private Scope<AddressSymbol> currentScope;
+    private final Classes.Class ownerClass;
     private int exprCounter = 0, localIndex = 0;
 
-    public Expressions(StringBuilder builder, String prefix, Classes classes, Literals literals, Scope<AddressSymbol> mainScope) {
+    public Expressions(StringBuilder builder, String prefix, Classes classes, Literals literals,
+                       Scope<AddressSymbol> mainScope, Classes.Class ownerClass) {
         this.builder = builder;
         this.prefix = prefix;
         this.classes = classes;
         this.literals = literals;
         this.mainScope = mainScope;
         this.currentScope = mainScope;
+        this.ownerClass = ownerClass;
     }
 
     private void expression(Expression expr) {
@@ -71,8 +74,8 @@ public class Expressions {
         else if (expr instanceof IsVoid) isvoid((IsVoid) expr);
         else if (expr instanceof Let) let((Let) expr);
         else if (expr instanceof Literal) literal((Literal) expr);
-        else if (expr instanceof MethodCall);
-        else if (expr instanceof SelfMethodCall);
+        else if (expr instanceof MethodCall) methodCall((MethodCall) expr);
+        else if (expr instanceof SelfMethodCall) selfMethodCall((SelfMethodCall) expr);
         else if (expr instanceof Variable);
         else if (expr instanceof While);
         else throw new RuntimeException("Unknown expression " + expr.getClass().getCanonicalName() + ": " + expr);
@@ -150,7 +153,7 @@ public class Expressions {
             After all codes are executed, if none of them matches, _case_abort is called
              */
             K.move(builder, "$t1", "$t0");
-            K.li(builder, "$t2", classes.get(SymbolTable.lookupClass(branch.getType())).getTag());
+            K.li(builder, "$t2", classes.get(branch.getClassType()).getTag());
             String loopLabel = prefix + "_branchLoop" + index;
             K.label(builder, loopLabel);
             K.branch(builder, "$t1", K.Condition.Equal, "$t2", prefix + "_branch" + index);
@@ -280,10 +283,8 @@ public class Expressions {
     }
 
     private void instantiation(Instantiation instantiation) {
-        ClassSymbol symbol = SymbolTable.lookupClass(instantiation.getType());
-
         // Handle dynamic object creation
-        if (symbol == SymbolTable.SelfType) {
+        if (instantiation.getClassType() == SymbolTable.SelfType) {
             // Get address of protObj and save it to stack
             K.lw(builder, "$a0", "0($a0)");
             K.li(builder, "$t0", 8);
@@ -299,7 +300,7 @@ public class Expressions {
             K.jr(builder, "$t0");
         } else {
             // Regular object creation
-            Classes.Class cls = classes.get(symbol);
+            Classes.Class cls = classes.get(instantiation.getClassType());
             K.lw(builder, "$a0", cls.getName() + "_protObj");
             K.jal(builder, "Object.copy");
             K.jal(builder, cls.getName() + "_init");
@@ -336,7 +337,7 @@ public class Expressions {
         // Allocate variables 1 by 1 as variables can depend on previous ones
         for (var local : let.getLocals()) {
             var localVariable = new AddressSymbol(local.getId(), localIndex++, AddressSymbol.Type.LOCAL);
-            var type = SymbolTable.lookupClass(local.getType());
+            var type = local.getDeclaredType();
             currentScope = K.allocScope(builder, currentScope, List.of(localVariable));
             if (local.getInitializer() != null) {
                 expression(local.getInitializer());
@@ -357,7 +358,44 @@ public class Expressions {
     }
 
     private void methodCall(MethodCall call) {
+        var target = call.getTargetObject();
+        var cls = classes.get(target.getExpressionType(null)); // type is cached, so it's ok to not pass a scope
+        expression(target);
 
+        if (call.getTargetType() == null) // Dynamic dispatch
+            doMethodCall(cls, call.getName(), call.getArguments(), false);
+        else // Static dispatch
+            doMethodCall(classes.get(call.getTargetClassType()), call.getName(), call.getArguments(), true);
+    }
+
+    private void selfMethodCall(SelfMethodCall call) {
+        // Target object is self, move it to $a0
+        K.move(builder, "$a0", "$s0");
+        doMethodCall(ownerClass, call.getName(), call.getArguments(), false);
+    }
+
+    private void doMethodCall(Classes.Class cls, String methodName, List<Expression> arguments, boolean isStaticDispatch) {
+        // Target object is in $a0, save it
+        K.push(builder, "$a0");
+        int targetIndex = localIndex++;
+        // Add arguments to stack in reverse order
+        for (int i = arguments.size() - 1; i >= 0; i--) {
+            expression(arguments.get(i));
+            K.push(builder, "$a0");
+            localIndex++;
+        }
+        // Put target object back in $a0
+        K.lw(builder, "$a0", -4 * (targetIndex + 1) + "$fp");
+        if (isStaticDispatch) {
+            builder.append(K.JR).append(cls.getName()).append('.').append(methodName).append(K.SEP);
+        } else {
+            K.lw(builder, "$t0", "8($s0)");
+            K.lw(builder, "$t0", 4 * cls.getMethodIndex(methodName) + "($t0)");
+            builder.append(K.JALR).append("$t0").append(K.SEP);
+        }
+        // Free up the stack
+        K.pop(builder, 4 * (arguments.size() + 1));
+        localIndex -= arguments.size() + 1;
     }
 
     // Utils

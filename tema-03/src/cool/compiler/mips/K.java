@@ -40,6 +40,7 @@ class K {
     static final String JAL   = "    jal     ";
     static final String J     = "    j       ";
     static final String JR    = "    jr      ";
+    static final String JALR  = "    jalr    ";
 
     static final String LW    = "    lw      ";
     static final String SW    = "    sw      ";
@@ -114,6 +115,10 @@ class K {
     static void pop(StringBuilder builder, String register) {
         builder.append(ADDIU).append(4).append(SEP);
         lw(builder, register, "0($sp)");
+    }
+
+    static void pop(StringBuilder builder, int size) {
+        builder.append(ADDIU).append(size).append(SEP);
     }
 
     static Scope<AddressSymbol> allocScope(StringBuilder builder, Scope<AddressSymbol> scope, List<AddressSymbol> variables) {

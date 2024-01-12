@@ -38,6 +38,10 @@ public class MethodCall extends Expression {
         return name;
     }
 
+    public List<Expression> getArguments() {
+        return arguments;
+    }
+
     @Override
     protected void printTitle() {
         print(".");
@@ -50,6 +54,8 @@ public class MethodCall extends Expression {
         print(name);
         print(arguments);
     }
+
+    private ClassSymbol targetClassType;
 
     @Override
     public ClassSymbol checkAndComputeType(Scope<VariableSymbol> scope) {
@@ -65,7 +71,7 @@ public class MethodCall extends Expression {
                         "Type of static dispatch cannot be SELF_TYPE");
                 return null;
             }
-            targetCls = SymbolTable.lookupClass(targetType);
+            targetClassType = targetCls = SymbolTable.lookupClass(targetType);
             if (targetCls == null) {
                 SymbolTable.error(this, context.TYPE().getSymbol(),
                         "Type %s of static dispatch is undefined".formatted(targetType));
@@ -81,6 +87,10 @@ public class MethodCall extends Expression {
         }
 
         return checkMethodCall(scope, targetCls, cls, name, arguments, this, context.ID().getSymbol());
+    }
+
+    public ClassSymbol getTargetClassType() {
+        return targetClassType;
     }
 
     static ClassSymbol checkMethodCall(Scope<VariableSymbol> scope, ClassSymbol methodClass, ClassSymbol objectClass,
