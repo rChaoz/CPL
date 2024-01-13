@@ -1,5 +1,6 @@
 package cool.compiler.ast.expression;
 
+import cool.compiler.mips.Literals;
 import cool.structures.ClassSymbol;
 import cool.structures.Scope;
 import cool.structures.SymbolTable;
@@ -53,6 +54,6 @@ public class Literal extends Expression {
 
     @Override
     public String toString() {
-        return getExpressionType(null).getName() + " literal: " + content;
+        return getExpressionType(null).getName() + " literal: " + Literals.escape(content);
     }
 }

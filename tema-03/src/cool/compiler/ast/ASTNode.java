@@ -1,5 +1,6 @@
 package cool.compiler.ast;
 
+import cool.compiler.mips.Literals;
 import org.antlr.v4.runtime.ParserRuleContext;
 
 import java.util.List;
@@ -15,7 +16,7 @@ public abstract class ASTNode {
         if (context.children == null) return "";
         return String.join(" ", context.children.stream().map(child -> {
             if (child instanceof ParserRuleContext) return getContentText((ParserRuleContext) child);
-            else return child.getText();
+            else return Literals.escape(child.getText());
         }).toList());
     }
 

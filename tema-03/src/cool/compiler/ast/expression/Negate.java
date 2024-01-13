@@ -45,6 +45,6 @@ public class Negate extends Expression {
 
     @Override
     public String toString() {
-        return "calc not [ %s ]" + getContentText(target);
+        return "calc not [ %s ]".formatted(getContentText(target));
     }
 }

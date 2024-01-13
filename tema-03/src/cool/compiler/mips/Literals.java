@@ -41,29 +41,12 @@ public class Literals {
         for (var cls : classes) addLiteral(cls.getName());
     }
 
-    public String generateCode() {
+    public static String escape(String s) {
         StringBuilder builder = new StringBuilder();
 
-        // It's fine to use a new blank object as all Classes objects have the same tags for basic classes
-        Classes classes = new Classes();
-        var stringCls = classes.get(SymbolTable.String);
-        var intCls = classes.get(SymbolTable.Int);
-        var boolCls = classes.get(SymbolTable.Bool);
-
-        // String constants
-        for (var entry : stringLiterals.entrySet()) {
-            String str = entry.getKey();
-
-            K.label(builder, "str_const" + entry.getValue());
-            K.word(builder, stringCls.getTag());
-            K.word(builder, 4 + (str.length() + 4) / 4);
-            K.word(builder, stringCls.getDispTab());
-            K.word(builder, "int_const" + intLiterals.get(str.length()));
-            builder.append(K.ASCIIZ).append('"');
-
-            // MIPS backslash escapes
-            for (int i = 0; i < str.length(); i++) {
-                char c = str.charAt(i);
+        // MIPS backslash escapes
+            for (int i = 0; i < s.length(); i++) {
+                char c = s.charAt(i);
                 switch (c) {
                     case '\n':
                         builder.append("\\n");
@@ -95,7 +78,28 @@ public class Literals {
                 }
             }
 
-            builder.append('"').append(K.SEP);
+        return builder.toString();
+    }
+
+    public String generateCode() {
+        StringBuilder builder = new StringBuilder();
+
+        // It's fine to use a new blank object as all Classes objects have the same tags for basic classes
+        Classes classes = new Classes();
+        var stringCls = classes.get(SymbolTable.String);
+        var intCls = classes.get(SymbolTable.Int);
+        var boolCls = classes.get(SymbolTable.Bool);
+
+        // String constants
+        for (var entry : stringLiterals.entrySet()) {
+            String str = entry.getKey();
+
+            K.label(builder, "str_const" + entry.getValue());
+            K.word(builder, stringCls.getTag());
+            K.word(builder, 4 + (str.length() + 4) / 4);
+            K.word(builder, stringCls.getDispTab());
+            K.word(builder, "int_const" + intLiterals.get(str.length()));
+            builder.append(K.ASCIIZ).append('"').append(escape(str)).append('"').append(K.SEP);
             K.align(builder, 2);
         }
 
