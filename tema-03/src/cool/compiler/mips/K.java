@@ -90,7 +90,10 @@ class K {
     }
 
     static void li(StringBuilder builder, String register, int immediate) {
-        builder.append(LI).append(register).append(' ').append(immediate).append(SEP);
+        builder.append(LI).append(register).append(' ');
+        if (immediate < 0) builder.append("0x").append(Integer.toUnsignedString(immediate, 16));
+        else builder.append(immediate);
+        builder.append(SEP);
     }
 
     static void li(StringBuilder builder, String register, String immediate) {

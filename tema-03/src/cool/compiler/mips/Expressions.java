@@ -10,6 +10,7 @@ import cool.structures.SymbolTable;
 import cool.structures.VariableSymbol;
 import org.antlr.v4.runtime.ParserRuleContext;
 
+import java.util.Comparator;
 import java.util.List;
 
 public class Expressions {
@@ -121,6 +122,10 @@ public class Expressions {
         // Evaluate target expression and ensure it's not void first
         eval(casee.getTarget());
         K.branch(builder, "$a0", K.Condition.NotEqual, "$zero", expressionOk);
+        ParserRuleContext ctx = casee.getContext();
+        while (!(ctx.getParent() instanceof CoolParser.ProgramContext)) ctx = ctx.getParent();
+        K.la(builder, "$a0", literals.getLabel(Compiler.fileNamesMap.get(ctx)));
+        K.li(builder, "$t1", casee.getContext().start.getLine());
         K.jal(builder, "_case_abort2");
         // Expression result will stay in $a0 until a branch is selected
         K.label(builder, expressionOk);
@@ -128,12 +133,16 @@ public class Expressions {
         // Place tag of expression type in $t0
         K.lw(builder, "$t0", "0($a0)");
 
+        // Branches are sorted by depth (number of parents/ancestors), higher depth has higher priority
+        var branches = casee.getBranches().stream().sorted(
+                Comparator.comparingInt((CaseBranch branch) -> classes.get(branch.getClassType()).getTag()).reversed()
+        ).toList();
+
         // Type testing & jump to branches
         int index = 0;
-        // Need -1 as constant
-        K.li(builder, "$t3", -1);
-        for (var branch : casee.getBranches()) {
-            K.comment(builder, depth, branch);
+        for (var branch : branches) {
+            builder.append(K.SEP);
+            K.comment(builder, depth, "check if " + branch.getType());
             /* == Pseudocode ==
 
             Variables:
@@ -150,7 +159,7 @@ public class Expressions {
                 do:
                     if TYPE == BRANCH_TYPE: goto branch.code_label
                     TYPE = get_parent(TYPE)
-                while TYPE != -1  // Object.parent == -1 (tag)
+                while TYPE > BRANCH_TYPE  // child classes always have a tag higher than their parents
 
             After all codes are executed, if none of them matches, _case_abort is called
              */
@@ -159,26 +168,30 @@ public class Expressions {
             String loopLabel = prefix + "_branchLoop" + index;
             K.label(builder, loopLabel);
             K.branch(builder, "$t1", K.Condition.Equal, "$t2", prefix + "_branch" + index);
+            builder.append(K.MUL).append("$t1 $t1 4").append(K.SEP);
             K.lw(builder, "$t1", "class_parentTab($t1)");
-            K.branch(builder, "$t1", K.Condition.NotEqual, "$t3", loopLabel);
+            K.branch(builder, "$t1", K.Condition.GreaterEqual, "$t2", loopLabel);
 
             index++;
         }
+        // No branch matched
         K.jal(builder, "_case_abort");
 
         // Branch bodies
         index = 0;
-        for (var branch : casee.getBranches()) {
+        for (var branch : branches) {
+            builder.append(K.SEP);
+            K.comment(builder, depth, branch);
             K.label(builder, prefix + "_branch" + index);
             // We have expression result in $a0
             // We want to move it to a variable (onto the stack) with the name the chosen branch expects
             var branchVariable = new AddressSymbol(branch.getId(), localIndex++, AddressSymbol.Type.LOCAL);
-            Scope<AddressSymbol> branchScope = K.allocScope(builder, currentScope, List.of(branchVariable));
+            currentScope = K.allocScope(builder, currentScope, List.of(branchVariable));
             K.sw(builder, "$a0", branchVariable.getAddress());
 
             eval(branch.getBody());
 
-            K.freeScope(builder, branchScope);
+            currentScope = K.freeScope(builder, currentScope);
             localIndex--;
 
             K.j(builder, endJump);
