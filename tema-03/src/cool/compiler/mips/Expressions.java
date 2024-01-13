@@ -291,7 +291,7 @@ public class Expressions {
         // Handle dynamic object creation
         if (instantiation.getClassType() == SymbolTable.SelfType) {
             // Get address of protObj and save it to stack
-            K.lw(builder, "$a0", "0($a0)");
+            K.lw(builder, "$a0", "0($s0)");
             K.li(builder, "$t0", 8);
             builder.append(K.MUL).append("$a0 $a0 $t0").append(K.SEP);
             K.push(builder, "$a0");
@@ -301,12 +301,12 @@ public class Expressions {
             // Call the initialization method
             K.pop(builder, "$t0");
             builder.append(K.ADDIU).append("$t0 $t0 4").append(K.SEP);
-            K.lw(builder, "t0", "class_objTab($t0)");
-            K.jr(builder, "$t0");
+            K.lw(builder, "$t0", "class_objTab($t0)");
+            K.jalr(builder, "$t0");
         } else {
             // Regular object creation
             Classes.Class cls = classes.get(instantiation.getClassType());
-            K.lw(builder, "$a0", cls.getName() + "_protObj");
+            K.la(builder, "$a0", cls.getName() + "_protObj");
             K.jal(builder, "Object.copy");
             K.jal(builder, cls.getName() + "_init");
         }
@@ -413,7 +413,7 @@ public class Expressions {
         } else {
             K.lw(builder, "$t0", "8($a0)");
             K.lw(builder, "$t0", 4 * cls.getMethodIndex(methodName) + "($t0)");
-            builder.append(K.JALR).append("$t0").append(K.SEP);
+            K.jalr(builder, "$t0");
         }
         // Remove target object from stack (arguments are removed by callee)
         K.pop(builder, 1);

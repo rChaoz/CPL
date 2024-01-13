@@ -67,6 +67,10 @@ class K {
         builder.append(JAL).append(address).append(SEP);
     }
 
+    static void jalr(StringBuilder builder, String address) {
+        builder.append(JALR).append(address).append(SEP);
+    }
+
     static void j(StringBuilder builder, String address) {
         builder.append(J).append(address).append(SEP);
     }
