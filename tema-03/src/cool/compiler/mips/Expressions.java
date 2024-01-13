@@ -66,6 +66,7 @@ public class Expressions {
         else if (expr instanceof Let) let((Let) expr);
         else if (expr instanceof Literal) literal((Literal) expr);
         else if (expr instanceof MethodCall) methodCall((MethodCall) expr);
+        else if (expr instanceof Negate) negate((Negate) expr);
         else if (expr instanceof SelfMethodCall) selfMethodCall((SelfMethodCall) expr);
         else if (expr instanceof Variable) variable((Variable) expr);
         else if (expr instanceof While) whilee((While) expr);
@@ -94,7 +95,7 @@ public class Expressions {
             case MULTIPLY -> builder.append(K.MUL).append("$a0 $a0 $a1").append(K.SEP);
             case DIVIDE -> {
                 builder.append(K.DIV).append("$a0 $a1").append(K.SEP);
-                K.move(builder, "$a0", "$low");
+                builder.append(K.MFLO).append("$a0").append(K.SEP);
             }
         }
         int32ToObject();
@@ -190,7 +191,6 @@ public class Expressions {
 
     private void comparison(Comparison comparison) {
         K.comment(builder, depth, comparison);
-        String prefix = this.prefix + "_cmp" + this.exprCounter++;
         /* == Pseudocode ==
         $t1 <- left()
         $t2 <- right()
@@ -215,6 +215,7 @@ public class Expressions {
             $a1 = true
             end_label:
          */
+        String prefix = this.prefix + "_cmp" + this.exprCounter++;
         String trueLabel = prefix + "_true", endLabel = prefix + "_end";
 
         eval(comparison.getLeft());
@@ -231,9 +232,10 @@ public class Expressions {
             // Check reference equality
             K.branch(builder, "$t1", K.Condition.Equal, "$t2", trueLabel);
             // Then, call build-in equality test
-            K.li(builder, "$a0", literals.getLabel(true));
-            K.li(builder, "$a1", literals.getLabel(false));
+            K.la(builder, "$a0", literals.getLabel(true));
+            K.la(builder, "$a1", literals.getLabel(false));
             K.jal(builder, "equality_test");
+            K.j(builder, endLabel);
         } else {
             // Extract int32 values from objects
             K.lw(builder, "$t1", "12($t1)");
@@ -245,13 +247,13 @@ public class Expressions {
                 case EQUAL -> throw new RuntimeException("impossible");
             }, "$t2", trueLabel);
             // If jump was not made, then condition is false
-            K.li(builder, "$a0", literals.getLabel(false));
+            K.la(builder, "$a0", literals.getLabel(false));
             K.j(builder, endLabel);
         }
 
         // Common labels
         K.label(builder, trueLabel);
-        K.li(builder, "$a0", literals.getLabel(true));
+        K.la(builder, "$a0", literals.getLabel(true));
         K.label(builder, endLabel);
     }
 
@@ -261,7 +263,7 @@ public class Expressions {
         // Extract int32 value from int
         K.lw(builder, "$a0", "12($a0)");
         // Calculate complement
-        builder.append(K.SUB).append("$a0 $zero $a0");
+        builder.append(K.SUB).append("$a0 $zero $a0").append(K.SEP);
         int32ToObject();
     }
 
@@ -321,11 +323,12 @@ public class Expressions {
         K.branch(builder, "$a0", K.Condition.Equal, "$zero", trueLabel);
 
         // False branch
-        K.li(builder, "$a0", literals.getLabel(false));
+        K.la(builder, "$a0", literals.getLabel(false));
+        K.j(builder, endLabel);
 
         // True branch
         K.label(builder, trueLabel);
-        K.li(builder, "$a0", literals.getLabel(true));
+        K.la(builder, "$a0", literals.getLabel(true));
         K.label(builder, endLabel);
     }
 
@@ -385,6 +388,25 @@ public class Expressions {
         // Target object is self, move it to $a0
         K.move(builder, "$a0", "$s0");
         doMethodCall(call.getContext(), ownerClass, call.getName(), call.getArguments(), false);
+    }
+
+    private void negate(Negate negate) {
+        K.comment(builder, depth, negate);
+        String prefix = this.prefix + this.exprCounter++;
+        String trueLabel = prefix + "_true", endLabel = prefix + "_end";
+        eval(negate.getTarget());
+        // Extract bool value from int
+        K.lw(builder, "$a0", "12($a0)");
+        // Check if true
+        K.branch(builder, "$a0", K.Condition.NotEqual, "$zero", trueLabel);
+        // False branch (return true)
+        K.la(builder, "$a0", literals.getLabel(true));
+        K.j(builder, endLabel);
+
+        // True branch (return false)
+        K.label(builder, trueLabel);
+        K.la(builder, "$a0", literals.getLabel(false));
+        K.label(builder, endLabel);
     }
 
     private void doMethodCall(ParserRuleContext ctx, Classes.Class cls, String methodName, List<Expression> arguments, boolean isStaticDispatch) {
@@ -453,7 +475,9 @@ public class Expressions {
         // Save int32 on stack
         K.push(builder, "$a0");
         // Create a new int
-        instantiation(new Instantiation(null, "Int"));
+        var inst = new Instantiation(null, "Int");
+        inst.getExpressionType(null); // allow it to call SymbolTabel.lookup("Int")
+        instantiation(inst);
         K.pop(builder, "$a1");
         // Populate object's int32 attribute
         K.sw(builder, "$a1", "12($a0)");

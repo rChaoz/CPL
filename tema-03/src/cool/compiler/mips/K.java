@@ -51,6 +51,8 @@ class K {
     static final String SW    = "    sw      ";
     static final String LI    = "    li      ";
     static final String MOVE  = "    move    ";
+    static final String MFHI  = "    mfhi    ";
+    static final String MFLO  = "    mflo    ";
     static final String LA    = "    la      ";
     static final String ADDIU = "    addiu   ";
 

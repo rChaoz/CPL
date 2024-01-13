@@ -20,6 +20,10 @@ public class Negate extends Expression {
         return context;
     }
 
+    public Expression getTarget() {
+        return target;
+    }
+
     @Override
     protected void printTitle() {
         print("~");
