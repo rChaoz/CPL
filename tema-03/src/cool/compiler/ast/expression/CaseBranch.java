@@ -2,6 +2,7 @@ package cool.compiler.ast.expression;
 
 import cool.compiler.ast.ASTNode;
 import cool.parser.CoolParser;
+import cool.structures.DefaultScope;
 import cool.structures.Scope;
 import cool.structures.SymbolTable;
 import cool.structures.VariableSymbol;
@@ -43,7 +44,9 @@ public class CaseBranch extends ASTNode {
             SymbolTable.error(this, context.TYPE().getSymbol(), "Case variable %s has illegal type SELF_TYPE".formatted(id));
         else if (SymbolTable.lookupClass(type) == null)
             SymbolTable.error(this, context.TYPE().getSymbol(), "Case variable %s has undefined type %s".formatted(id, type));
-        body.checkTypes(scope);
+        var branchScope = new DefaultScope<>(scope);
+        branchScope.add(new VariableSymbol(id, SymbolTable.lookupClass(type)));
+        body.checkTypes(branchScope);
     }
 
     @Override

@@ -76,7 +76,7 @@ public class MethodCall extends Expression {
                 SymbolTable.error(this, context.TYPE().getSymbol(),
                         "Type %s of static dispatch is undefined".formatted(targetType));
                 return;
-            } else if (!targetCls.isSuperTypeOf(cls)) {
+            } else if (!cls.canBeAssignedTo(targetCls, scope.getCurrentClass())) {
                 SymbolTable.error(this, context.TYPE().getSymbol(),
                         "Type %s of static dispatch is not a superclass of type %s".formatted(targetType, cls.getName()));
                 return;

@@ -105,8 +105,8 @@ WS : [ \n\f\r\t]+ -> skip;
 
 // Comments
 LINE_COMMENT : '--' ~[\r\n]* -> skip;
-BLOCK_COMMENT : '(*' (EOF_BLOCK_COMMENT | BLOCK_COMMENT | '*' ~')' | ~'*')* '*)' -> skip;
-EOF_BLOCK_COMMENT : '(*' (EOF_BLOCK_COMMENT | BLOCK_COMMENT | '*' ~')' | ~'*')* EOF { raiseError("EOF in comment"); } ;
+BLOCK_COMMENT : '(*' (EOF_BLOCK_COMMENT | BLOCK_COMMENT | '*'+ ~[*)] | ~'*')* '*'+ ')' -> skip;
+EOF_BLOCK_COMMENT : '(*' (EOF_BLOCK_COMMENT | BLOCK_COMMENT | '*'+ ~[*)] | ~'*')* EOF { raiseError("EOF in comment"); } ;
 UNMATCHED_BLOCK_COMMENT : '*)' { raiseError("Unmatched *)"); } ;
 
 // Strings
