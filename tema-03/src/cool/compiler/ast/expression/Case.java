@@ -45,6 +45,7 @@ public class Case extends Expression {
 
     @Override
     public ClassSymbol checkAndComputeType(Scope<VariableSymbol> scope) {
+        target.getExpressionType(scope);
         var branchTypes = new ArrayList<ClassSymbol>(branches.size());
         for (var branch : branches) {
             var branchType = branch.checkAndComputeType(scope);
