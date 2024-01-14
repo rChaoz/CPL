@@ -379,6 +379,7 @@ public class Expressions {
 
         // Restore the stack
         for (var ignored: let.getLocals()) currentScope = K.freeScope(builder, currentScope);
+        localIndex -= let.getLocals().size();
 
         if (currentScope != initialScope) throw new RuntimeException("impossible");
     }
